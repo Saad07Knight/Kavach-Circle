@@ -16,10 +16,7 @@ import android.os.Looper
 import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
-import android.util.Base64
-import android.view.Gravity
 import android.view.WindowManager
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.Switch
@@ -29,10 +26,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.google.zxing.BarcodeFormat
-import com.journeyapps.barcodescanner.BarcodeEncoder
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
 
 class MainActivity : AppCompatActivity() {
 
@@ -41,7 +34,6 @@ class MainActivity : AppCompatActivity() {
     private var live: TextView? = null
 
     private val permReq = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { build() }
-    private val scan = registerForActivityResult(ScanContract()) { r -> r.contents?.let { onScanned(it) } }
 
     private val liveLoop = object : Runnable {
         override fun run() {
@@ -89,11 +81,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun roleScreen() {
         root.addView(Ui.title(this, "Who will use this phone?"))
-        root.addView(Ui.text(this, "Install Kavach Circle on two phones: the person to protect, and a family member who will be their guardian.", 15f, Ui.MUTED))
+        root.addView(Ui.text(this, "Install Kavach Circle on the phone of the person to protect. Their guardians get SMS alerts and do not need the app, but can install it for full-screen alerts.", 15f, Ui.MUTED))
         root.addView(Ui.button(this, "Protect me\nI could be targeted by a scam call", Ui.CYAN, Ui.DARK) {
             Prefs.setRole(this, Prefs.ROLE_VICTIM); build()
         })
-        root.addView(Ui.button(this, "I'm a guardian\nI watch over a family member") {
+        root.addView(Ui.button(this, "I'm a guardian (optional)\nShow full-screen alerts from a family member") {
             Prefs.setRole(this, Prefs.ROLE_GUARDIAN); build()
         })
     }
@@ -120,7 +112,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun victimScreen() {
         root.addView(Ui.title(this, "Protection for ${Prefs.name(this).ifBlank { "you" }}"))
-        if (!identityCard("Your guardians will see this name. Your number is used to link their phone to yours.")) return
+        if (!identityCard("Your guardians will see this name and number in every alert, so they can call you back.")) return
 
         val on = Prefs.enabled(this) && !Prefs.fakeOff(this)
         val status = Ui.card(this, if (on) Ui.GREEN else Ui.LINE)
@@ -139,15 +131,16 @@ class MainActivity : AppCompatActivity() {
 
         val gc = Ui.card(this)
         gc.addView(Ui.text(this, "Guardians", 17f, Ui.INK, true))
+        gc.addView(Ui.text(this, "Family members who get an SMS if a call looks like a scam. They do not need the app. They can reply YES or NO to approve or block a payment.", 13f, Ui.MUTED))
         val gs = Prefs.guardians(this)
-        if (gs.isEmpty()) gc.addView(Ui.text(this, "No guardians yet. Add a family member who will be alerted.", 13f, Ui.MUTED))
-        gs.forEach {
-            val pending = it.activeAt > System.currentTimeMillis()
-            gc.addView(Ui.text(this, "${it.name} · ${it.phone}" + if (pending) " · active in 24 h" else "", 14f, if (pending) Ui.AMBER else Ui.INK))
+        gs.forEach { g ->
+            val pending = g.activeAt > System.currentTimeMillis()
+            gc.addView(Ui.button(this, "${g.name} · ${g.phone}" + (if (pending) " · active in 24 h" else "") + "\nTap to remove") { removeGuardianDialog(g) })
         }
-        gc.addView(Ui.button(this, "Add a guardian (show QR code)", Ui.CYAN, Ui.DARK) { showPairQr() })
-        if (gs.isNotEmpty()) gc.addView(Ui.button(this, "Send a test alert") {
-            Messenger.toGuardians(this, "TEST", ""); toast("Test alert sent by SMS")
+        gc.addView(Ui.button(this, "Add a guardian", Ui.CYAN, Ui.DARK) { addGuardianDialog() })
+        if (gs.isNotEmpty()) gc.addView(Ui.button(this, "Send a test SMS to my guardians") {
+            if (!granted(Manifest.permission.SEND_SMS)) toast("Allow SMS first")
+            else { Messenger.toGuardians(this, "TEST"); toast("Test SMS sent") }
         })
         root.addView(gc)
 
@@ -177,21 +170,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun guardianScreen() {
         root.addView(Ui.title(this, "Guardian"))
-        if (!identityCard("The person you protect will see this name on their phone.")) return
+        root.addView(Ui.text(this, "Optional. You already get SMS alerts without this app. With it, alerts open full screen, call them automatically, and you can approve or block a payment in one tap.", 13f, Ui.MUTED))
 
-        val sc = Ui.card(this, if (Prefs.victimConfirmed(this)) Ui.GREEN else Ui.LINE)
+        val sc = Ui.card(this, if (Prefs.victimPhone(this).isNotEmpty()) Ui.GREEN else Ui.AMBER)
         if (Prefs.victimPhone(this).isEmpty()) {
-            sc.addView(Ui.text(this, "Not linked yet", 18f, Ui.MUTED, true))
-            sc.addView(Ui.text(this, "On their phone, open Kavach Circle and tap \"Add a guardian\". Then scan the QR code it shows. You must be together in person.", 13f, Ui.MUTED))
+            sc.addView(Ui.text(this, "Who are you protecting?", 18f, Ui.INK, true))
+            sc.addView(Ui.text(this, "Enter the name and number of the person who added you as their guardian.", 13f, Ui.MUTED))
+            val n = Ui.edit(this, "Their name, e.g. Mom")
+            val ph = Ui.edit(this, "Their 10-digit mobile number", Ui.PHONE_INPUT)
+            sc.addView(n)
+            sc.addView(ph)
+            sc.addView(Ui.button(this, "Save", Ui.CYAN, Ui.DARK) {
+                if (n.text.isBlank() || Phone.norm(ph.text.toString()).length != 10) toast("Enter their name and a 10-digit number")
+                else { Prefs.setVictim(this, n.text.toString(), ph.text.toString()); build() }
+            })
         } else {
-            val ok = Prefs.victimConfirmed(this)
-            sc.addView(Ui.text(this, if (ok) "Watching over ${Prefs.victimName(this)}" else "Waiting for ${Prefs.victimName(this)}'s phone to confirm…", 18f, if (ok) Ui.GREEN else Ui.AMBER, true))
-            sc.addView(Ui.text(this, "Their number: ${Prefs.victimPhone(this)}. Alerts arrive by SMS, signed with a key only your two phones hold.", 13f, Ui.MUTED))
+            sc.addView(Ui.text(this, "Watching over ${Prefs.victimName(this)}", 18f, Ui.GREEN, true))
+            sc.addView(Ui.text(this, "Kavach SMS from ${Prefs.victimPhone(this)} will open full screen on this phone.", 13f, Ui.MUTED))
+            sc.addView(Ui.button(this, "Change person") { Prefs.setVictim(this, "", ""); build() })
         }
-        sc.addView(Ui.button(this, if (Prefs.victimPhone(this).isEmpty()) "Scan their QR code" else "Scan again", Ui.CYAN, Ui.DARK) {
-            scan.launch(ScanOptions().setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                .setPrompt("Scan the QR code on their phone").setBeepEnabled(false).setOrientationLocked(false))
-        })
         root.addView(sc)
 
         permissionCard(guardianPerms())
@@ -320,7 +317,7 @@ class MainActivity : AppCompatActivity() {
                 1 -> {
                     Prefs.setEnabled(this, false)
                     MonitorService.stop(this)
-                    Messenger.toGuardians(this, "DISABLED", "")
+                    Messenger.toGuardians(this, "DISABLED")
                     build()
                 }
                 2 -> duressOff()
@@ -332,7 +329,7 @@ class MainActivity : AppCompatActivity() {
     /** Looks switched off to whoever is watching. Keeps protecting and alerts the family. */
     private fun duressOff() {
         Prefs.setFakeOff(this, true)
-        Messenger.toGuardians(this, "DURESS", "")
+        Messenger.toGuardians(this, "DURESS")
         MonitorService.start(this) // refreshes the notification to a neutral one
         build()
     }
@@ -366,49 +363,59 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancel", null).show()
     }
 
-    private fun showPairQr() {
-        val alias = "kvc-g-" + System.currentTimeMillis()
-        val raw = Crypto.newSecret()
-        Crypto.importKey(this, alias, raw)
-        Prefs.setPendingAlias(this, alias)
-        val safeName = Prefs.name(this).replace("|", " ")
-        val content = "KAVACH1|${Prefs.phone(this)}|$safeName|${Base64.encodeToString(raw, Base64.NO_WRAP)}"
-        raw.fill(0)
-        val bmp = try { BarcodeEncoder().encodeBitmap(content, BarcodeFormat.QR_CODE, 720, 720) } catch (e: Exception) { null }
-        if (bmp == null) { toast("Could not draw the QR code"); return }
-        val img = ImageView(this).apply {
-            setImageBitmap(bmp)
-            adjustViewBounds = true
-            setPadding(Ui.dp(this@MainActivity, 16), Ui.dp(this@MainActivity, 16), Ui.dp(this@MainActivity, 16), Ui.dp(this@MainActivity, 16))
-        }
+    private fun addGuardianDialog() {
+        if (!granted(Manifest.permission.SEND_SMS)) { toast("Allow SMS first, so Kavach can text your guardian"); return }
+        val n = Ui.edit(this, "Guardian's name, e.g. Rahul")
+        val ph = Ui.edit(this, "Guardian's 10-digit mobile number", Ui.PHONE_INPUT)
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            addView(img)
-            addView(Ui.text(this@MainActivity, "Only show this to a family member who is with you in person. Never send a photo of it.", 13f, Ui.MUTED).apply {
-                setPadding(Ui.dp(this@MainActivity, 20), 0, Ui.dp(this@MainActivity, 20), Ui.dp(this@MainActivity, 8))
-            })
+            setPadding(Ui.dp(this@MainActivity, 20), Ui.dp(this@MainActivity, 8), Ui.dp(this@MainActivity, 20), 0)
+            addView(n); addView(ph)
         }
-        AlertDialog.Builder(this).setTitle("Guardian: scan this").setView(box)
-            .setPositiveButton("Done") { _, _ -> build() }.show()
+        AlertDialog.Builder(this).setTitle("Add a guardian").setView(box)
+            .setPositiveButton("Add") { _, _ ->
+                val number = Phone.norm(ph.text.toString())
+                when {
+                    n.text.isBlank() || number.length != 10 -> toast("Enter a name and a 10-digit number")
+                    number == Prefs.phone(this) -> toast("That is your own number")
+                    else -> {
+                        val before = Prefs.activeGuardians(this)
+                        val g = Prefs.addGuardian(this, n.text.toString(), number)
+                        Messenger.sms(this, g.phone, Messenger.text(this, "ADDED"))
+                        if (g.activeAt > System.currentTimeMillis()) {
+                            val warn = "${Messenger.PREFIX}: ${g.name} (${g.phone}) is being added as ${Prefs.name(this)}'s guardian and will be active in 24 hours. If you did not expect this, call ${Prefs.phone(this)}."
+                            before.forEach { Messenger.sms(this, it.phone, warn) }
+                            toast("${g.name} will be active in 24 hours. Your other guardians were told.")
+                        } else {
+                            toast("${g.name} added and sent a welcome SMS")
+                        }
+                        build()
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null).show()
     }
 
-    private fun onScanned(text: String) {
-        val p = text.split("|")
-        if (p.size != 4 || p[0] != "KAVACH1" || p[1].length != 10) { toast("That is not a Kavach Circle code"); return }
-        val raw = try { Base64.decode(p[3], Base64.NO_WRAP) } catch (e: Exception) { null }
-        if (raw == null || raw.size != 32) { toast("That code is damaged. Try again"); return }
-        val alias = "kvc-v-" + System.currentTimeMillis()
-        Crypto.importKey(this, alias, raw)
-        raw.fill(0)
-        Prefs.setVictim(this, p[2], p[1], alias)
-        if (!granted(Manifest.permission.SEND_SMS)) {
-            toast("Allow SMS first, then scan again")
-        } else {
-            Messenger.send(this, p[1], alias, "PAIR", Prefs.name(this))
-            toast("Linking by SMS. Their phone will confirm in a few seconds")
+    private fun removeGuardianDialog(g: Guardian) {
+        val doRemove = {
+            Prefs.removeGuardian(this, g.phone)
+            Messenger.sms(this, g.phone, Messenger.text(this, "REMOVED"))
+            toast("${g.name} removed")
+            build()
         }
-        build()
+        if (Prefs.hasPins(this)) {
+            askPin("Enter your PIN to remove ${g.name}") { r ->
+                when (r) {
+                    1 -> doRemove()
+                    2 -> duressOff()
+                    else -> toast("Wrong PIN")
+                }
+            }
+        } else {
+            AlertDialog.Builder(this).setTitle("Remove ${g.name}?")
+                .setPositiveButton("Remove") { _, _ -> doRemove() }
+                .setNegativeButton("Cancel", null).show()
+        }
     }
 
     private fun resetAll() {

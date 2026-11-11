@@ -2,12 +2,9 @@
 
 Team Power Rangers · HackRush 2026 · Cybersecurity track
 
-Kavach Circle is a real Android app. You install the same APK on two phones:
+Kavach Circle is a real Android app for the person you want to protect (for example, Mom). It watches for the pattern of a digital arrest scam: a long call, a payment app opened during that call, and a bank OTP arriving. When it sees the pattern, it puts a pause screen on top of Paytm, Google Pay, PhonePe and other payment apps, and texts her guardians.
 
-- **The person to protect** (for example, Mom). The app watches for the pattern of a digital arrest scam: a long call, a payment app opened during that call, and a bank OTP arriving. When it sees the pattern, it puts a pause screen on top of Paytm, Google Pay, PhonePe and other payment apps, and alerts the family.
-- **The guardian** (for example, her son). Alerts open full screen on this phone and call Mom automatically.
-
-The two phones talk over **signed SMS**, so you need no server and no internet. Each pair of phones shares a secret key, exchanged only by scanning a QR code in person and then sealed in Android Keystore. Every message carries an HMAC-SHA256 signature, a timestamp and a one-time nonce, so a message can't be forged or replayed.
+**Guardians don't need the app.** You add each guardian by name and number. They get plain, readable SMS alerts on any phone, and can reply **YES 1234** or **NO 1234** to approve or block a payment (the 4-digit code changes every time). A guardian can also install the app to get full-screen alerts, automatic calls and one-tap approve/block.
 
 ---
 
@@ -40,25 +37,23 @@ This workspace couldn't build the APK itself, so GitHub builds it for you in the
 
 ## 3. Set up
 
-**Phone 1: the person to protect**
+**On the phone of the person to protect**
 
 1. Choose **Protect me**, then enter your name and 10-digit mobile number.
 2. Tap every **Allow** button. Each one opens the right Android screen:
-   - **SMS**: spot bank OTPs and send signed alerts to the family
+   - **SMS**: spot bank OTPs and text the guardians
    - **Usage access**: see when Paytm, Google Pay or PhonePe opens
    - **Display over other apps**: show the pause screen on top of payment apps
    - **Phone**: call the family in one tap
-   - **Tamper alarm** (device admin): the family is warned before the app can be uninstalled
+   - **Tamper alarm** (device admin): guardians are warned before the app can be uninstalled
    - **Battery**: keep the app running in the background
-3. Tap **Set PINs**: choose a normal PIN and a different **duress PIN**.
-4. Tap **Turn on protection**.
+3. Tap **Add a guardian**, then enter their name and number. They get a welcome SMS.
+4. Tap **Set PINs**: choose a normal PIN and a different **duress PIN**.
+5. Tap **Turn on protection**, then **Send a test SMS to my guardians**.
 
-**Phone 2: the guardian**
+**Optional: on a guardian's phone**
 
-1. Choose **I'm a guardian**, then enter your name and number, and allow the permissions.
-2. On Phone 1, tap **Add a guardian (show QR code)**. On Phone 2, tap **Scan their QR code**.
-3. Within a few seconds, Phone 2 shows **Watching over …** and Phone 1 lists the guardian.
-4. On Phone 1, tap **Send a test alert** to check the link.
+Install the same APK, choose **I'm a guardian**, and enter the protected person's name and number. Their Kavach SMS will then open full screen, call them automatically after 15 seconds, and offer Approve and Block buttons.
 
 > If Android says **"Restricted setting"** while you are granting a permission, go to Settings › Apps › Kavach Circle › ⋮ (top right) › **Allow restricted settings**, then try again. Android does this for apps installed from outside the Play Store.
 
@@ -68,15 +63,15 @@ This workspace couldn't build the APK itself, so GitHub builds it for you in the
 
 **Demo mode** is on by default. In demo mode the pause screen appears after a **1-minute** call instead of 30.
 
-1. From a third phone, video-call Phone 1 on WhatsApp. Play the "CBI officer".
-2. After 1 minute, the caller says "open Google Pay". When Phone 1 opens Google Pay, **Kavach's pause screen covers it**.
-3. On the pause screen, tap **Ask my family to approve this payment**. Phone 2 shows **Payment approval needed**. Tap **Block this payment**, and Phone 1 shows *"Rahul said do not pay"*.
-4. Send Phone 1 an SMS such as `Your OTP is 482913 for UPI transfer`. Now all three signals are met, so Phone 2 gets a full-screen **COERCION ALERT** and calls Phone 1 automatically after 15 seconds.
-5. **Duress PIN:** on Phone 1, tap **Turn off protection** and enter the duress PIN. Phone 1 looks switched off, while Phone 2 shows **DURESS PIN USED**.
-6. **Screen share:** start a screen share from Phone 1 to the caller. Kavach's screens show as black to the caller.
-7. **Tamper alarm:** go to Settings › Security › Device admin apps and untick Kavach Circle. Phone 2 gets **Kavach is being removed**.
+1. From a third phone, video-call the protected phone on WhatsApp. Play the "CBI officer".
+2. After 1 minute, the caller says "open Google Pay". When the protected phone opens Google Pay, **Kavach's pause screen covers it**.
+3. Tap **Ask my family to approve this payment**. The guardian gets an SMS with a code. They reply **NO 1234** (or tap Block in the guardian app), and the pause screen shows *"Rahul said do not pay"*.
+4. Send the protected phone an SMS such as `Your OTP is 482913 for UPI transfer`. Now all three signals are met, so the guardian gets a **Kavach Circle ALERT** SMS. With the guardian app, it also opens full screen and calls the protected phone.
+5. **Duress PIN:** tap **Turn off protection** and enter the duress PIN. The phone looks switched off, but the guardian gets an **URGENT** SMS.
+6. **Screen share:** start a screen share to the caller. Kavach's screens show as black to the caller.
+7. **Tamper alarm:** go to Settings › Security › Device admin apps and untick Kavach Circle. The guardian gets an SMS straight away.
 
-Turn **Demo mode** off for real use. Then the call threshold is 30 minutes, the pause before "continue without approval" is 2 minutes, and new guardians become active only after 24 hours.
+Turn **Demo mode** off for real use. Then the call threshold is 30 minutes, the pause before "continue without approval" is 2 minutes, and any guardian added after the first becomes active only after 24 hours, with the existing guardians told by SMS.
 
 ---
 
@@ -93,15 +88,16 @@ Code map (`app/src/main/java/com/kavachcircle/app/`):
 - `Engine.kt`: the rule engine and the payment-app list (add more bank apps here)
 - `InterventionActivity.kt`: the pause screen shown over payment apps
 - `AlertActivity.kt`: the guardian's full-screen alert, with auto-call
-- `Messenger.kt`: the signed SMS protocol (`KVC1|TYPE|nonce|time|payload|hmac`)
-- `Crypto.kt`: Keystore HMAC keys, PIN hashing
+- `Messenger.kt`: the SMS alerts and YES/NO approval replies
+- `Crypto.kt`: PIN hashing and one-time approval codes
 - `Services.kt`: background service, SMS receiver, boot receiver, tamper alarm
-- `MainActivity.kt`: setup, permissions, pairing, PINs
+- `MainActivity.kt`: setup, permissions, guardians, PINs
 
 ## Known limits
 
 - **The pause screen is a full screen of its own, not a floating overlay.** Many UPI apps hide floating overlays to block overlay attacks, but they can't stop another app's screen from opening on top.
 - **The app can't stop a payment inside Google Pay.** It pauses the person, pulls the family in and asks for approval. A hard bank-side hold needs a bank API (Phase 2 of the roadmap).
-- **Alerts cost one SMS each** on the sender's plan.
+- **Alerts cost one SMS each** on the protected person's plan.
+- **Alerts are plain SMS so any phone can read them.** Approvals are accepted only from a saved guardian number and only with that request's one-time code.
 - **It runs on Android 8 and above. iPhone doesn't allow these signals.**
 - **The signing key in `app/kavach-demo.keystore` is for the hackathon only.** Make a private key before any public release.

@@ -134,7 +134,7 @@ class MonitorService : Service() {
     }
 }
 
-/** Receives bank OTP SMS (only checks if it looks like one) and signed Kavach messages. */
+/** Receives bank OTP SMS (only checks if it looks like one), guardian YES/NO replies, and alerts on a guardian phone. */
 class SmsReceiver : BroadcastReceiver() {
     override fun onReceive(c: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
@@ -142,10 +142,12 @@ class SmsReceiver : BroadcastReceiver() {
         if (msgs.isEmpty()) return
         val from = msgs[0].originatingAddress ?: return
         val body = msgs.joinToString("") { it.messageBody ?: "" }
-        if (body.startsWith(Messenger.PFX + "|")) {
-            Messenger.handle(c, from, body)
-        } else if (Prefs.role(c) == Prefs.ROLE_VICTIM && Otp.looksLikeOtp(body)) {
-            Engine.onOtp(c)
+        when (Prefs.role(c)) {
+            Prefs.ROLE_VICTIM -> {
+                if (Messenger.onVictimSms(c, from, body)) return
+                if (Otp.looksLikeOtp(body)) Engine.onOtp(c)
+            }
+            Prefs.ROLE_GUARDIAN -> Messenger.onGuardianSms(c, from, body)
         }
     }
 }
@@ -163,7 +165,7 @@ class BootReceiver : BroadcastReceiver() {
 /** Tamper alarm: switching off device admin is the step before uninstalling. Guardians hear about it first. */
 class AdminReceiver : DeviceAdminReceiver() {
     override fun onDisableRequested(context: Context, intent: Intent): CharSequence {
-        if (Prefs.role(context) == Prefs.ROLE_VICTIM) Messenger.toGuardians(context, "TAMPER", "")
+        if (Prefs.role(context) == Prefs.ROLE_VICTIM) Messenger.toGuardians(context, "TAMPER")
         return "Kavach Circle will tell your family that protection is being removed."
     }
 }

@@ -26,12 +26,13 @@ class AlertActivity : AppCompatActivity() {
     companion object {
         private val AUTO_CALL = setOf("ALERT", "HELP", "DURESS", "TAMPER")
 
-        fun launch(c: Context, type: String, payload: String) {
+        fun launch(c: Context, type: String, body: String, code: String) {
             val i = Intent(c, AlertActivity::class.java)
                 .putExtra("type", type)
-                .putExtra("payload", payload)
+                .putExtra("body", body)
+                .putExtra("code", code)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            val (title, body) = describe(c, type, payload)
+            val title = titleFor(type)
             if (Settings.canDrawOverlays(c)) {
                 try {
                     c.startActivity(i)
@@ -42,20 +43,13 @@ class AlertActivity : AppCompatActivity() {
             Notify.fullScreen(c, i, title, body)
         }
 
-        fun describe(c: Context, type: String, payload: String): Pair<String, String> {
-            val v = Prefs.victimName(c).ifBlank { "They" }
-            return when (type) {
-                "ALERT" -> "COERCION ALERT" to "$v has been on a call for $payload minutes, opened a payment app and just received a bank OTP. This matches a digital arrest scam."
-                "HELP" -> "$v needs you now" to "$v tapped \"Call my family\" during a long call ($payload)."
-                "APPROVE_REQ" -> "Payment approval needed" to "$v wants to pay during a long call ($payload). Approve only if you know exactly who they are paying."
-                "DURESS" -> "DURESS PIN USED" to "$v entered the duress PIN. Someone may be forcing them to switch Kavach off. Protection is still running."
-                "TAMPER" -> "Kavach is being removed" to "Someone is switching off Kavach's tamper protection on $v's phone. This is usually the step before uninstalling it."
-                "DISABLED" -> "Protection turned off" to "$v turned Kavach off with the real PIN."
-                "CONTINUED" -> "Payment continued without approval" to "$v waited out the pause and went on to $payload."
-                "NEWG" -> "New guardian requested" to "$payload is being added as a guardian on $v's phone and becomes active in 24 hours. If you did not expect this, call $v."
-                "TEST" -> "Test alert" to "This is a test from $v's phone. Your Kavach link works."
-                else -> "Kavach Circle" to "Message from $v's phone."
-            }
+        fun titleFor(type: String): String = when (type) {
+            "ALERT" -> "COERCION ALERT"
+            "HELP" -> "They need you now"
+            "APPROVE_REQ" -> "Payment approval needed"
+            "DURESS" -> "DURESS PIN USED"
+            "TAMPER" -> "Kavach is being removed"
+            else -> "Kavach Circle"
         }
     }
 
@@ -103,12 +97,13 @@ class AlertActivity : AppCompatActivity() {
     private fun build() {
         handler.removeCallbacks(tickRunnable)
         val type = intent.getStringExtra("type") ?: ""
-        val payload = intent.getStringExtra("payload") ?: ""
-        val (title, body) = describe(this, type, payload)
+        val body = intent.getStringExtra("body") ?: ""
+        val code = intent.getStringExtra("code") ?: ""
+        val title = titleFor(type)
         val serious = type in AUTO_CALL
         val color = when (type) {
             "DURESS", "TAMPER" -> Ui.RED
-            "ALERT", "HELP", "APPROVE_REQ", "CONTINUED", "NEWG" -> Ui.AMBER
+            "ALERT", "HELP", "APPROVE_REQ" -> Ui.AMBER
             else -> Ui.CYAN
         }
         vibrate(serious)
@@ -130,13 +125,13 @@ class AlertActivity : AppCompatActivity() {
         }
 
         root.addView(Ui.button(this, "Call ${Prefs.victimName(this).ifBlank { "them" }} now", Ui.CYAN, Ui.DARK) { callVictim() })
-        if (type == "APPROVE_REQ") {
+        if (type == "APPROVE_REQ" && code.isNotEmpty()) {
             root.addView(Ui.button(this, "Block this payment", Ui.RED, Ui.DARK) {
-                Messenger.toVictim(this, "DENY", "")
+                Messenger.sms(this, Prefs.victimPhone(this), "NO $code")
                 done("You blocked the payment. They have been told not to pay.")
             })
             root.addView(Ui.button(this, "Approve this payment") {
-                Messenger.toVictim(this, "APPROVE", "")
+                Messenger.sms(this, Prefs.victimPhone(this), "YES $code")
                 done("You approved the payment.")
             })
         }

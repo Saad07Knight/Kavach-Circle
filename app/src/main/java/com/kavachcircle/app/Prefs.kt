@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import org.json.JSONArray
 import org.json.JSONObject
 
-data class Guardian(val name: String, val phone: String, val alias: String, val activeAt: Long)
+data class Guardian(val name: String, val phone: String, val activeAt: Long)
 
 object Phone {
     /** Last 10 digits, so +91 98xxxxxxxx and 98xxxxxxxx match. */
@@ -50,24 +50,27 @@ object Prefs {
         val out = ArrayList<Guardian>()
         for (i in 0 until arr.length()) {
             val o = arr.getJSONObject(i)
-            out.add(Guardian(o.getString("name"), o.getString("phone"), o.getString("alias"), o.optLong("activeAt", 0L)))
+            out.add(Guardian(o.optString("name"), o.optString("phone"), o.optLong("activeAt", 0L)))
         }
         return out
     }
 
-    fun saveGuardians(c: Context, list: List<Guardian>) {
+    private fun saveGuardians(c: Context, list: List<Guardian>) {
         val arr = JSONArray()
-        list.forEach {
-            arr.put(JSONObject().put("name", it.name).put("phone", it.phone).put("alias", it.alias).put("activeAt", it.activeAt))
-        }
+        list.forEach { arr.put(JSONObject().put("name", it.name).put("phone", it.phone).put("activeAt", it.activeAt)) }
         p(c).edit().putString("guardians", arr.toString()).apply()
     }
 
-    fun upsertGuardian(c: Context, g: Guardian) {
-        val list = guardians(c).filter { it.phone != g.phone }.toMutableList()
-        list.add(g)
-        saveGuardians(c, list)
+    /** Adds a guardian. The first one is active at once; later ones wait 24 hours (not in demo mode). */
+    fun addGuardian(c: Context, name: String, phone: String): Guardian {
+        val existing = guardians(c).filter { it.phone != Phone.norm(phone) }
+        val delay = if (existing.isEmpty()) 0L else newGuardianDelayMs(c)
+        val g = Guardian(name.trim(), Phone.norm(phone), System.currentTimeMillis() + delay)
+        saveGuardians(c, existing + g)
+        return g
     }
+
+    fun removeGuardian(c: Context, phone: String) = saveGuardians(c, guardians(c).filter { it.phone != phone })
 
     fun activeGuardians(c: Context): List<Guardian> =
         guardians(c).filter { it.activeAt <= System.currentTimeMillis() }
@@ -75,19 +78,11 @@ object Prefs {
     fun guardianByPhone(c: Context, phone: String): Guardian? =
         guardians(c).firstOrNull { it.phone == Phone.norm(phone) }
 
-    // ---- pairing session on the protected phone ----
-    fun pendingAlias(c: Context): String = p(c).getString("pendingAlias", "") ?: ""
-    fun setPendingAlias(c: Context, a: String) = p(c).edit().putString("pendingAlias", a).apply()
-
-    // ---- the protected person (stored on the guardian's phone) ----
+    // ---- the protected person (stored on a guardian's phone, only if the guardian installs the app) ----
     fun victimName(c: Context): String = p(c).getString("victimName", "") ?: ""
     fun victimPhone(c: Context): String = p(c).getString("victimPhone", "") ?: ""
-    fun victimAlias(c: Context): String = p(c).getString("victimAlias", "") ?: ""
-    fun victimConfirmed(c: Context): Boolean = p(c).getBoolean("victimConfirmed", false)
-    fun setVictim(c: Context, name: String, phone: String, alias: String) =
-        p(c).edit().putString("victimName", name).putString("victimPhone", Phone.norm(phone))
-            .putString("victimAlias", alias).putBoolean("victimConfirmed", false).apply()
-    fun setVictimConfirmed(c: Context) = p(c).edit().putBoolean("victimConfirmed", true).apply()
+    fun setVictim(c: Context, name: String, phone: String) =
+        p(c).edit().putString("victimName", name.trim()).putString("victimPhone", Phone.norm(phone)).apply()
 
     // ---- PINs (salted SHA-256) ----
     private fun salt(c: Context): String {
@@ -112,22 +107,6 @@ object Prefs {
             else -> 0
         }
     }
-
-    // ---- replay protection ----
-    /** Returns true if this nonce was already seen (a replay). Remembers it otherwise. */
-    fun seenOrRemember(c: Context, nonce: String): Boolean {
-        val raw = p(c).getString("nonces", "") ?: ""
-        val list = if (raw.isEmpty()) mutableListOf() else raw.split(",").toMutableList()
-        if (list.contains(nonce)) return true
-        list.add(nonce)
-        while (list.size > 300) list.removeAt(0)
-        p(c).edit().putString("nonces", list.joinToString(",")).apply()
-        return false
-    }
-
-    // ---- fallback key store for phones whose Keystore rejects HMAC import ----
-    fun keyFallback(c: Context, alias: String): String? = p(c).getString("kf_$alias", null)
-    fun setKeyFallback(c: Context, alias: String, b64: String) = p(c).edit().putString("kf_$alias", b64).apply()
 
     fun resetAll(c: Context) = p(c).edit().clear().apply()
 }
