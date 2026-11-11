@@ -1,2 +1,1 @@
--keep class com.journeyapps.** { *; }
--keep class com.google.zxing.** { *; }
+# No third-party libraries need keep rules.

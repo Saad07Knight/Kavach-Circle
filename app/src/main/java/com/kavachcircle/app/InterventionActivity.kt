@@ -109,7 +109,7 @@ class InterventionActivity : AppCompatActivity() {
         val left = wait - ((System.currentTimeMillis() - openedAt) / 1000).toInt()
         when (Engine.approval) {
             Engine.APPROVAL_WAITING -> {
-                status.text = "Waiting for your family to reply…"
+                status.text = "Waiting for your family to reply YES or NO by SMS…"
                 askBtn.isEnabled = false
             }
             Engine.APPROVAL_YES -> {
@@ -140,7 +140,7 @@ class InterventionActivity : AppCompatActivity() {
     }
 
     private fun callFamily() {
-        Messenger.toGuardians(this, "HELP", "${Engine.minutes().toInt()} min call, opened $app")
+        Messenger.toGuardians(this, "HELP", Engine.minutes().toInt(), app)
         val g = Prefs.activeGuardians(this).firstOrNull() ?: return
         val canCall = ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED
         val i = Intent(if (canCall) Intent.ACTION_CALL else Intent.ACTION_DIAL, Uri.parse("tel:${g.phone}"))
@@ -148,14 +148,15 @@ class InterventionActivity : AppCompatActivity() {
     }
 
     private fun askApproval() {
+        Engine.approvalCode = Crypto.approvalCode()
         Engine.approval = Engine.APPROVAL_WAITING
-        Messenger.toGuardians(this, "APPROVE_REQ", "${Engine.minutes().toInt()} min call, opened $app")
+        Messenger.toGuardians(this, "APPROVE_REQ", Engine.minutes().toInt(), app, Engine.approvalCode)
         update()
     }
 
     private fun continueAnyway() {
         if (Engine.approval != Engine.APPROVAL_YES) {
-            Messenger.toGuardians(this, "CONTINUED", app)
+            Messenger.toGuardians(this, "CONTINUED", app = app)
         }
         Engine.pauseCleared = true
         finish()

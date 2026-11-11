@@ -10,7 +10,7 @@ import android.media.AudioManager
  *  1. A voice or video call has been running for the threshold (30 min, 1 min in demo mode)
  *  2. A payment or banking app was opened during that call
  *  3. A bank OTP or debit SMS arrived during that call
- * Signals 1 + 2 show the pause screen over the payment app. All three alert the guardians.
+ * Signals 1 + 2 show the pause screen over the payment app. All three send an SMS alert to the guardians.
  */
 object Engine {
     val PAYMENT_APPS: Map<String, String> = mapOf(
@@ -44,6 +44,7 @@ object Engine {
     @Volatile var pauseCleared = false
     @Volatile var approval = APPROVAL_NONE
     @Volatile var approverName = ""
+    @Volatile var approvalCode = ""
     @Volatile var lastApp = ""
     @Volatile private var lastFg = ""
 
@@ -57,6 +58,7 @@ object Engine {
         pauseCleared = false
         approval = APPROVAL_NONE
         approverName = ""
+        approvalCode = ""
     }
 
     fun inCall(c: Context): Boolean {
@@ -107,7 +109,7 @@ object Engine {
         }
         if (longCall && paymentDuringCall && otpDuringCall && !alertSent) {
             alertSent = true
-            Messenger.toGuardians(c, "ALERT", "${minutes().toInt()}")
+            Messenger.toGuardians(c, "ALERT", minutes().toInt(), lastApp.ifBlank { "a payment app" })
             Notify.info(c, "Kavach Circle alerted your family", "A long call, a payment app and a bank OTP together look like a scam.")
         }
     }
