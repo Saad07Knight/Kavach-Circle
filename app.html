@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kavach Circle Live Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Ops console: victim phone | engine + relay | guardian phone. Cyan = system, amber = Kavach acting, red = threat. */
+  --bg:#070B14; --panel:#0F1A2B; --panel2:#132238; --line:#22324A;
+  --ink:#E6EDF7; --muted:#8FA3BF; --cyan:#22D3EE; --amber:#F5A524; --red:#FF4D6D; --green:#34D399;
+  --display:"Chakra Petch","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"JetBrains Mono","Courier New",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;
+  background-image:linear-gradient(rgba(120,170,220,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(120,170,220,.05) 1px,transparent 1px);background-size:48px 48px}
+button{font-family:var(--body);cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+button:disabled{opacity:.4;cursor:not-allowed}
+header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:rgba(7,11,20,.9);flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.05em;display:flex;align-items:center;gap:10px}
+.brand small{font-family:var(--mono);font-weight:400;color:var(--amber);font-size:11px;letter-spacing:.14em}
+header a{margin-left:auto;color:var(--muted);font-size:13px}
+.layout{display:grid;grid-template-columns:330px minmax(300px,1fr) 330px;gap:20px;padding:20px;max-width:1400px;margin:0 auto}
+@media (max-width:1100px){.layout{grid-template-columns:1fr 1fr}.center{grid-column:1 / -1;order:-1}}
+@media (max-width:700px){.layout{grid-template-columns:1fr;padding:16px}}
+.col-title{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin:0 0 10px;display:flex;justify-content:space-between}
+
+/* phones */
+.phone{width:310px;max-width:100%;margin:0 auto;background:#04070d;border:1px solid var(--line);border-radius:38px;padding:12px;box-shadow:0 30px 80px -40px rgba(34,211,238,.45)}
+.screen{position:relative;background:linear-gradient(180deg,#0d1726,#09101b);border-radius:28px;height:600px;overflow:hidden;display:flex;flex-direction:column}
+.sbar{display:flex;justify-content:space-between;padding:10px 18px 6px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.content{flex:1;padding:8px 14px 14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.pip{display:flex;align-items:center;gap:8px;margin:0 14px;padding:8px 12px;border-radius:12px;background:rgba(255,77,109,.12);border:1px solid var(--red);font-size:12.5px;cursor:pointer;color:var(--ink);text-align:left}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex:none}
+@media (prefers-reduced-motion:no-preference){.dot{animation:blink 1.2s infinite}@keyframes blink{50%{opacity:.3}}}
+.share{margin:0 14px;padding:6px 10px;border-radius:8px;background:var(--red);color:#22040b;font-size:11.5px;font-weight:600;text-align:center}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+.card h4{margin:0 0 4px;font-family:var(--display);font-size:15px;letter-spacing:.02em}
+.card p{margin:0;color:var(--muted);font-size:12.5px}
+.ok{color:var(--green)} .warn{color:var(--amber)} .bad{color:var(--red)}
+.apps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px}
+.app{display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;color:var(--ink);font-size:11px;padding:4px}
+.app i{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-style:normal;font-weight:700;font-family:var(--display);font-size:18px}
+.pbtn{width:100%;padding:11px;border-radius:11px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-weight:600;font-size:13.5px}
+.pbtn.primary{background:var(--cyan);border-color:var(--cyan);color:#04141a}
+.pbtn.amber{background:var(--amber);border-color:var(--amber);color:#1a1205}
+.pbtn.red{background:var(--red);border-color:var(--red);color:#22040b}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kv{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.kv:last-child{border:0}
+.kv span{color:var(--muted)}
+
+/* video call */
+.vcall{flex:1;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 35%,#1d2b40,#070b14 70%);margin:-8px -14px -14px;padding:16px 14px}
+.cop{width:120px;height:120px;border-radius:50%;margin:22px auto 10px;background:#24364f;position:relative;display:grid;place-items:center}
+.cop::before{content:"";width:46px;height:46px;border-radius:50%;background:#3b5272;position:absolute;top:22px}
+.cop::after{content:"";width:86px;height:40px;border-radius:40px 40px 0 0;background:#3b5272;position:absolute;bottom:6px}
+.badge{position:absolute;right:-4px;bottom:4px;background:var(--amber);color:#1a1205;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;z-index:1;font-family:var(--mono)}
+.caller{text-align:center} .caller b{font-family:var(--display);font-size:17px;display:block} .caller span{color:var(--muted);font-size:12px}
+.timer{text-align:center;font-family:var(--mono);font-size:22px;margin:8px 0;font-variant-numeric:tabular-nums}
+.script{background:rgba(0,0,0,.35);border-radius:10px;padding:10px;font-size:12.5px;min-height:56px;font-style:italic}
+.vcall .bottom{margin-top:auto;display:grid;gap:8px}
+
+/* bank */
+.bankhead{background:#1b2a6b;margin:-8px -14px 0;padding:14px;display:flex;justify-content:space-between;align-items:center}
+.bankhead b{font-family:var(--display);letter-spacing:.06em}
+.field{display:grid;gap:3px;font-size:11.5px;color:var(--muted)}
+.field div,.field input{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;color:var(--ink);font-size:13.5px;font-family:var(--body)}
+.otpbox{font-family:var(--mono);letter-spacing:.3em;font-size:18px;text-align:center}
+.overlay{position:absolute;inset:0;background:rgba(5,8,15,.86);backdrop-filter:blur(3px);display:flex;flex-direction:column;justify-content:center;gap:12px;padding:22px;z-index:3;text-align:center}
+.overlay .big{font-family:var(--display);font-size:20px;font-weight:700}
+.overlay p{margin:0;color:var(--ink);font-size:13px}
+.kv-hide.share-on{background:#000 !important;color:#000 !important;border-color:#000 !important}
+.toast{position:absolute;left:12px;right:12px;top:30px;z-index:4;background:#1a2436;border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:12.5px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.toast b{display:block;font-size:12px;color:var(--muted);font-weight:500}
+
+/* keypad */
+.pindots{display:flex;justify-content:center;gap:12px;margin:10px 0}
+.pindots span{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--muted)}
+.pindots span.f{background:var(--cyan);border-color:var(--cyan)}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.keys button{padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:18px;font-family:var(--mono)}
+
+/* guardian */
+.alert{border-color:var(--amber);background:rgba(245,165,36,.08)}
+.alert h4{color:var(--amber)}
+.alert.red{border-color:var(--red);background:rgba(255,77,109,.09)} .alert.red h4{color:var(--red)}
+.checks{list-style:none;margin:8px 0;padding:0;display:grid;gap:4px;font-family:var(--mono);font-size:11.5px}
+.checks li::before{content:"✔ ";color:var(--green)}
+.countdown{font-family:var(--mono);font-size:11.5px;color:var(--amber)}
+
+/* center */
+.center{display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.panel h3{margin:0 0 4px;font-family:var(--display);font-size:16px;letter-spacing:.03em}
+.panel .sub{color:var(--muted);font-size:12.5px;margin:0 0 12px}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px}
+.ctrl{padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:13px;font-weight:500}
+.ctrl:hover:not(:disabled){border-color:var(--cyan)}
+.ctrl.go{background:var(--amber);color:#1a1205;border-color:var(--amber);font-weight:600}
+.ctrl.danger:hover:not(:disabled){border-color:var(--red)}
+.conds{display:grid;gap:8px}
+.cond{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);font-size:13.5px}
+.cond .st{margin-left:auto;font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.cond.met{border-color:var(--green)} .cond.met .st{color:#04140c;background:var(--green);border-color:var(--green)}
+.meter{height:10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);overflow:hidden;margin:12px 0 6px}
+.meter div{height:100%;width:0;background:var(--amber);transition:width .4s}
+.meterlbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.log{font-family:var(--mono);font-size:11.5px;background:#050912;border:1px solid var(--line);border-radius:10px;padding:10px;height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.log div{white-space:pre-wrap;word-break:break-all;color:var(--muted)}
+.log .t{color:#5c6f8c}
+.log .g{color:var(--green)} .log .a{color:var(--amber)} .log .r{color:var(--red)} .log .c{color:var(--cyan)}
+.note{color:var(--muted);font-size:12px;margin:0}
+.scamview{margin:10px auto 0;width:310px;max-width:100%;border:1px dashed var(--red);border-radius:12px;padding:10px;font-size:12px;color:var(--muted)}
+.scamview b{color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:.1em}
+.blk{display:inline-block;background:#000;color:#000;border-radius:3px;padding:0 4px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="28" height="25" viewBox="0 0 34 30" aria-hidden="true"><polygon points="8.5,0 25.5,0 34,15 25.5,30 8.5,30 0,15" fill="none" stroke="#22D3EE" stroke-width="2"/><path d="M17 7 11 9.2v4.3c0 3.7 2.6 7 6 8 3.4-1 6-4.3 6-8V9.2L17 7z" fill="#F5A524"/></svg>
+    KAVACH CIRCLE <small>LIVE PROTOTYPE</small>
+  </div>
+  <a href="index.html">Back to the website</a>
+</header>
+
+<main class="layout">
+  <!-- VICTIM -->
+  <section aria-labelledby="vt">
+    <p class="col-title" id="vt"><span>Victim's phone · Sunita, 64</span><span id="vKav" class="ok">KAVACH ON</span></p>
+    <div class="phone"><div class="screen" id="vScreen"></div></div>
+    <div class="scamview" id="scamView" hidden><b>WHAT THE SCAMMER SEES ON SCREEN SHARE</b><div id="scamViewText" style="margin-top:6px"></div></div>
+  </section>
+
+  <!-- CENTER -->
+  <div class="center">
+    <section class="panel" aria-labelledby="ct">
+      <h3 id="ct">Scenario controls</h3>
+      <p class="sub">Play the scammer, or run the whole scenario. One real second is one minute of call time.</p>
+      <div class="ctrls">
+        <button class="ctrl go" id="bAuto">Run full scenario</button>
+        <button class="ctrl" id="bCall">Start scam video call</button>
+        <button class="ctrl" id="bSkip">Skip to 30 min</button>
+        <button class="ctrl" id="bShare">Scammer asks for screen share</button>
+        <button class="ctrl danger" id="bUninstall">Scammer says "uninstall Kavach"</button>
+        <button class="ctrl" id="bReset">Reset</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="et">
+      <h3 id="et">On-device rule engine</h3>
+      <p class="sub">A fixed rule, no AI. All three must be true during the same call.</p>
+      <div class="conds">
+        <div class="cond" id="c1">Call running 30+ minutes <span class="st" id="c1s">WAITING</span></div>
+        <div class="cond" id="c2">Banking app opened during the call <span class="st">WAITING</span></div>
+        <div class="cond" id="c3">Bank OTP received during the call <span class="st">WAITING</span></div>
+      </div>
+      <div class="meter" aria-hidden="true"><div id="meter"></div></div>
+      <div class="meterlbl"><span id="meterTxt">0 of 3 conditions</span><span id="clock">No active call</span></div>
+    </section>
+
+    <section class="panel" aria-labelledby="rt">
+      <h3 id="rt">Kavach relay server</h3>
+      <p class="sub">Real Web Crypto running in your browser: ECDSA P-256 signatures, ECDH key exchange, AES-256-GCM. The relay checks signatures and nonces but cannot read alerts.</p>
+      <div class="ctrls" style="margin-bottom:10px">
+        <button class="ctrl danger" id="bReplay" disabled>Replay a captured request</button>
+        <button class="ctrl danger" id="bTamper" disabled>Tamper with a captured request</button>
+      </div>
+      <div class="log" id="relayLog" aria-live="polite"></div>
+    </section>
+    <p class="note">On Android, the three signals come from AudioManager (call mode), UsageStatsManager (foreground app) and NotificationListenerService (OTP sender and keywords). This page simulates those signals; the signing, encryption and server checks are real.</p>
+  </div>
+
+  <!-- GUARDIAN -->
+  <section aria-labelledby="gt">
+    <p class="col-title" id="gt"><span>Guardian's phone · Rahul (son)</span><span id="gHb" class="ok">LINKED</span></p>
+    <div class="phone"><div class="screen" id="gScreen"></div></div>
+  </section>
+</main>
+
+<script>
+(() => {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const REAL_PIN = "2580", DURESS_PIN = "1470";
+const SCRIPT = [
+  "This is Inspector Sharma, CBI Mumbai. A parcel in your name had drugs.",
+  "Stay on video. Do not disconnect or you will be arrested.",
+  "Do not tell your family. This is a confidential investigation.",
+  "Your Aadhaar is linked to a money laundering case.",
+  "To clear your name, move your savings to the RBI verification account.",
+  "Open your bank app now and do exactly as I say."
+];
+let S;
+function fresh(){
+  return { call:false, min:0, c1:false, c2:false, c3:false, alert:false, screen:"home",
+    transfer:"idle", otpShown:false, kavachOn:true, uninstalled:false, duress:false, share:false,
+    pin:"", pinMode:"off", gcall:"none", guardianCards:[], countdown:null, lastBeat:Date.now(), runId:(S?S.runId+1:1),
+    toast:null, balance:625000 };
+}
+S = fresh();
+
+/* ---------------- crypto ---------------- */
+const C = { ok:false, used:new Set(), last:null };
+const enc = new TextEncoder(), dec = new TextDecoder();
+const hex = (buf) => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,"0")).join("");
+const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const unb64 = (s) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const unhex = (h) => Uint8Array.from(h.match(/.{2}/g).map(x => parseInt(x,16)));
+async function setupCrypto(){
+  try{
+    const sub = crypto.subtle;
+    C.sign = await sub.generateKey({name:"ECDSA",namedCurve:"P-256"}, false, ["sign","verify"]);
+    C.vDH = await sub.generateKey({name:"ECDH",namedCurve:"P-256"}, false, ["deriveKey"]);
+    C.gDH = await sub.generateKey({name:"ECDH",namedCurve:"P-256"}, false, ["deriveKey"]);
+    C.vAes = await sub.deriveKey({name:"ECDH",public:C.gDH.publicKey}, C.vDH.privateKey, {name:"AES-GCM",length:256}, false, ["encrypt"]);
+    C.gAes = await sub.deriveKey({name:"ECDH",public:C.vDH.publicKey}, C.gDH.privateKey, {name:"AES-GCM",length:256}, false, ["decrypt"]);
+    const raw = await sub.exportKey("raw", C.gDH.publicKey);
+    const fp = hex(await sub.digest("SHA-256", raw)).slice(0,16).toUpperCase().match(/.{4}/g).join(" ");
+    const sraw = await sub.exportKey("raw", C.sign.publicKey);
+    const sfp = hex(await sub.digest("SHA-256", sraw)).slice(0,16).toUpperCase().match(/.{4}/g).join(" ");
+    C.ok = true;
+    rlog("Device keys created. Private keys are non-extractable.", "g");
+    rlog("Victim signing key registered · fingerprint " + sfp, "c");
+    rlog("Guardian paired by in-person QR · fingerprint " + fp, "c");
+  }catch(e){
+    C.ok = false;
+    rlog("Web Crypto is not available in this browser, so alerts are delivered unsigned in this demo.", "r");
+  }
+}
+async function send(type, data){
+  const inner = JSON.stringify({type, data, ts:Date.now()});
+  if(!C.ok){ relayReceive({plain:inner}); return; }
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:"AES-GCM",iv}, C.vAes, enc.encode(inner));
+  const env = { nonce: hex(crypto.getRandomValues(new Uint8Array(12))), ts: Date.now(), iv: hex(iv), ct: b64(ct) };
+  const body = JSON.stringify(env);
+  const sig = await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"}, C.sign.privateKey, enc.encode(body));
+  const pkt = { body, sig: hex(sig), type };
+  if(type !== "heartbeat"){ C.last = pkt; $("bReplay").disabled = false; $("bTamper").disabled = false; }
+  relayReceive(pkt);
+}
+async function relayReceive(pkt, label){
+  if(pkt.plain){ guardianReceive(JSON.parse(pkt.plain)); return; }
+  const env = JSON.parse(pkt.body);
+  let valid = false;
+  try{ valid = await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"}, C.sign.publicKey, unhex(pkt.sig), enc.encode(pkt.body)); }catch(e){ valid = false; }
+  const quiet = pkt.type === "heartbeat";
+  if(!valid){ rlog((label||"POST /v1/alert") + " · signature INVALID · dropped", "r"); return; }
+  if(Date.now() - env.ts > 60000){ rlog("Request older than 60 s · dropped", "r"); return; }
+  if(C.used.has(env.nonce)){ rlog((label||"POST /v1/alert") + " · nonce " + env.nonce.slice(0,8) + "… already used · REPLAY BLOCKED", "r"); return; }
+  C.used.add(env.nonce);
+  if(!quiet) rlog("POST /v1/alert · nonce " + env.nonce.slice(0,8) + "… · sig " + pkt.sig.slice(0,12) + "… ✓ verified\n   payload: " + env.ct.slice(0,28) + "… (" + unb64(env.ct).length + " bytes, relay cannot read)\n   → forwarded to Rahul and Priya", "g");
+  try{
+    const pt = await crypto.subtle.decrypt({name:"AES-GCM",iv:unhex(env.iv)}, C.gAes, unb64(env.ct));
+    guardianReceive(JSON.parse(dec.decode(pt)));
+  }catch(e){ rlog("Guardian could not decrypt · message rejected", "r"); }
+}
+function rlog(msg, cls){
+  const box = $("relayLog");
+  const d = document.createElement("div");
+  const t = new Date().toLocaleTimeString("en-IN",{hour12:false});
+  d.innerHTML = '<span class="t">' + t + '</span> ';
+  const s = document.createElement("span"); s.className = cls || ""; s.textContent = msg; d.appendChild(s);
+  box.appendChild(d); box.scrollTop = box.scrollHeight;
+  while(box.children.length > 80) box.removeChild(box.firstChild);
+}
+
+/* ---------------- guardian side ---------------- */
+function guardianReceive(m){
+  S.lastBeat = Date.now();
+  if(m.type === "heartbeat") return;
+  if(m.type === "alert"){
+    S.guardianCards.unshift({kind:"alert"});
+    S.countdown = 10;
+  } else if(m.type === "duress"){
+    S.guardianCards.unshift({kind:"duress"});
+  } else if(m.type === "disabled"){
+    S.guardianCards.unshift({kind:"disabled"});
+  } else if(m.type === "resolved"){
+    S.guardianCards.unshift({kind:"resolved", text:m.data.text});
+  }
+  render();
+}
+function gCall(){
+  if(S.gcall !== "none") return;
+  S.countdown = null;
+  S.gcall = "ringing";
+  rlog("Rahul's phone is calling Sunita (isolation breaker)", "a");
+  render();
+}
+function gDecide(ok){
+  if(S.transfer !== "hold") return;
+  S.transfer = ok ? "approved" : "blocked";
+  if(ok){ S.balance -= 480000; }
+  send("resolved", {text: ok ? "You approved the transfer." : "You blocked the transfer. Bank hold stays for 24 h."});
+  rlog(ok ? "Two-person rule: guardian APPROVED · bank releases transfer" : "Two-person rule: guardian BLOCKED · mock bank API keeps 24 h hold", ok ? "a" : "g");
+  render();
+}
+
+/* ---------------- engine ---------------- */
+function evaluate(){
+  const active = S.kavachOn && !S.uninstalled;
+  S.c1 = S.call && S.min >= 30;
+  const met = [S.c1, S.c2 && S.call, S.c3 && S.call].filter(Boolean).length;
+  if(active && met === 3 && !S.alert){
+    S.alert = true;
+    if(S.transfer === "otp") S.transfer = "hold";
+    rlog("RULE FIRED · 3 of 3 conditions met · coercion alert", "a");
+    send("alert", {min:Math.floor(S.min)});
+  }
+  return met;
+}
+function tick(){
+  if(S.call){ S.min += 0.25; }
+  if(S.countdown !== null && S.gcall === "none"){
+    S.countdown -= 0.25;
+    if(S.countdown <= 0){ S.countdown = null; gCall(); }
+  }
+  if(S.uninstalled && Date.now() - S.lastBeat > 6000 && !S.guardianCards.some(c => c.kind === "silent")){
+    S.guardianCards.unshift({kind:"silent"});
+    rlog("No heartbeat from Sunita's phone for 6 s · tamper alarm sent to guardians", "r");
+  }
+  evaluate();
+  render();
+}
+setInterval(() => { if(!S.uninstalled && S.kavachOn !== null) send("heartbeat", {}); }, 3000);
+
+/* ---------------- victim actions ---------------- */
+function startCall(){
+  if(S.call) return;
+  S.call = true; S.min = 0; S.screen = "call";
+  rlog("Victim's phone: incoming video call from unknown number", "c");
+  render();
+}
+function hangUp(){
+  S.call = false; S.screen = "home"; S.share = false;
+  render();
+}
+function openBank(){
+  S.screen = "bank";
+  if(S.call && !S.c2){ S.c2 = true; rlog("Signal: SafeBank opened during call", "c"); }
+  render();
+}
+function sendMoney(){
+  if(S.transfer !== "idle") return;
+  S.transfer = "otp";
+  const run = S.runId;
+  setTimeout(() => {
+    if(run !== S.runId) return;
+    S.toast = {from:"VM-SAFEBK", text:"482913 is your OTP to transfer Rs 4,80,000 to A/C XXXX4417. Do not share."};
+    if(S.call){ S.c3 = true; rlog("Signal: bank OTP received during call (sender + keyword match only)", "c"); }
+    evaluate(); render();
+    setTimeout(() => { if(run === S.runId){ S.toast = null; render(); } }, 4500);
+  }, 1200);
+  render();
+}
+function submitOtp(){
+  if(S.transfer !== "otp") return;
+  S.transfer = "sent"; S.balance -= 480000;
+  if(S.call) rlog("OTP typed before the rule could fire · transfer completed", "r");
+  else rlog("Normal payment with no call active · Kavach stays out of the way", "g");
+  render();
+}
+function pinKey(k){
+  if(k === "del"){ S.pin = S.pin.slice(0,-1); render(); return; }
+  if(S.pin.length >= 4) return;
+  S.pin += k;
+  if(S.pin.length === 4){
+    const p = S.pin; S.pin = "";
+    if(p === REAL_PIN){
+      S.kavachOn = false; S.pinMode = "realoff"; S.screen = "home";
+      send("disabled", {});
+      rlog("Kavach turned off with the real PIN · guardians informed", "a");
+    } else if(p === DURESS_PIN){
+      S.duress = true; S.pinMode = "fakeoff"; S.screen = "home";
+      send("duress", {});
+      rlog("DURESS PIN entered · app pretends to switch off · silent alert sent", "r");
+    } else {
+      S.pinMode = "wrong";
+    }
+  }
+  render();
+}
+function answerGuardian(){
+  S.gcall = "connected";
+  S.call = false; S.share = false; S.screen = "home";
+  rlog("Sunita answered Rahul · scam call dropped · isolation broken", "g");
+  send("resolved", {text:"Mom answered your call. The scam call has ended."});
+  render();
+}
+function uninstall(){
+  if(S.uninstalled) return;
+  S.uninstalled = true; S.screen = "home";
+  rlog("Kavach uninstalled on victim's phone · heartbeats stop", "r");
+  render();
+}
+
+/* ---------------- render victim ---------------- */
+const fmt = (m) => { const mm = Math.floor(m), ss = Math.floor((m - mm) * 60); return String(mm).padStart(2,"0") + ":" + String(ss).padStart(2,"0"); };
+const inr = (n) => "₹" + n.toLocaleString("en-IN");
+function vRender(){
+  const el = $("vScreen");
+  const hideCls = "";
+  let h = '<div class="sbar"><span>10:' + String(6 + Math.floor(S.min)%54).padStart(2,"0") + '</span><span>' + ((!S.uninstalled && S.kavachOn && S.pinMode !== "fakeoff") ? "KAVACH ·" : "") + '  4G ▮▮▮</span></div>';
+  if(S.share) h += '<div class="share">● Sharing screen with unknown caller</div>';
+  if(S.call && S.screen !== "call") h += '<button class="pip" data-a="tocall"><span class="dot"></span>On video call · Insp. Sharma · <b>' + fmt(S.min) + '</b></button>';
+  h += '<div class="content">';
+  if(S.screen === "call"){
+    h += '<div class="vcall"><div class="cop"><span class="badge">CBI</span></div>' +
+      '<div class="caller"><b>Insp. R. Sharma</b><span>"CBI Cyber Cell, Mumbai" · unknown number</span></div>' +
+      '<div class="timer">' + fmt(S.min) + '</div>' +
+      '<div class="script">"' + SCRIPT[Math.min(SCRIPT.length - 1, Math.floor(S.min / 5))] + '"</div>' +
+      '<div class="bottom"><button class="pbtn amber" data-a="bank">Open bank app (as the caller says)</button>' +
+      '<button class="pbtn red" data-a="hang">Hang up</button></div></div>';
+  } else if(S.screen === "bank"){
+    h += '<div class="bankhead"><b>SAFEBANK</b><span style="font-size:12px">Balance ' + inr(S.balance) + '</span></div>';
+    if(S.transfer === "idle"){
+      h += '<div class="field">To<div>RBI Verification A/C · XXXX4417</div></div>' +
+        '<div class="field">Amount<div>₹4,80,000</div></div>' +
+        '<div class="field">Remark<div>Fund verification as per CBI</div></div>' +
+        '<button class="pbtn primary" data-a="send">Send money</button>';
+    } else if(S.transfer === "otp" || S.transfer === "hold"){
+      h += '<div class="card"><h4>Enter OTP</h4><p>Sent to your registered mobile number</p></div>' +
+        '<div class="field">OTP<input id="otpIn" class="otpbox" value="' + (S.toast || S.c3 ? "482913" : "") + '" aria-label="OTP" readonly></div>' +
+        '<button class="pbtn primary" data-a="otp">Confirm transfer</button>';
+    } else if(S.transfer === "sent" || S.transfer === "approved"){
+      h += '<div class="card"><h4 class="bad">₹4,80,000 sent</h4><p>To RBI Verification A/C · XXXX4417</p></div>';
+    } else if(S.transfer === "blocked"){
+      h += '<div class="card"><h4 class="ok">Transfer cancelled</h4><p>Held by your bank for 24 hours on a Kavach coercion flag. Your money is safe.</p></div>';
+    }
+    h += '<button class="pbtn" data-a="home">Home</button>';
+  } else if(S.screen === "pin"){
+    let msg = "Enter PIN to turn off protection";
+    if(S.pinMode === "wrong") msg = "Wrong PIN. Try again";
+    h += '<div class="card' + hideCls + '"><h4>Kavach Circle</h4><p>' + msg + '</p></div>' +
+      '<div class="pindots' + hideCls + '">' + [0,1,2,3].map(i => '<span class="' + (i < S.pin.length ? "f" : "") + '"></span>').join("") + '</div>' +
+      '<div class="keys' + hideCls + '">' + ["1","2","3","4","5","6","7","8","9","","0","del"].map(k => k === "" ? "<span></span>" : '<button data-k="' + k + '" aria-label="' + (k === "del" ? "Delete" : k) + '">' + (k === "del" ? "⌫" : k) + '</button>').join("") + '</div>' +
+      '<p class="note" style="text-align:center">Demo: real PIN 2580 · duress PIN 1470</p>' +
+      '<button class="pbtn" data-a="home">Back</button>';
+  } else {
+    // home
+    if(S.uninstalled){
+      h += '<div class="card"><h4>Kavach Circle was uninstalled</h4><p>The scammer told you to remove it. Your guardians will notice the silence.</p></div>';
+    } else if(S.pinMode === "fakeoff" || S.pinMode === "realoff"){
+      h += '<div class="card' + (S.pinMode === "fakeoff" ? "" : "") + '"><h4>Protection is off</h4><p>Kavach Circle has been switched off.</p></div>';
+    } else {
+      h += '<div class="card' + hideCls + '"><h4 class="ok">Protected by Kavach Circle</h4><p>Guardians: Rahul (son), Priya (daughter)</p>' +
+        '<div class="kv"><span>Rule engine</span>' + (S.alert ? '<b class="warn">Alert sent</b>' : '<b>Watching</b>') + '</div>' +
+        '<div class="kv"><span>Data shared</span><b>On / off signals only</b></div></div>';
+    }
+    if(S.gcall === "connected") h += '<div class="card"><h4 class="ok">Talking to Rahul</h4><p>Your family is with you. Real police never arrest anyone on a video call.</p></div>';
+    h += '<div class="apps">' +
+      '<button class="app" data-a="tocall"><i style="background:#1f7a4d">☎</i>Phone</button>' +
+      '<button class="app" data-a="bank"><i style="background:#1b2a6b">₹</i>SafeBank</button>' +
+      '<button class="app" data-a="none"><i style="background:#2c3d57">✉</i>Messages</button>' +
+      (S.uninstalled ? "" : '<button class="app" data-a="pin"><i class="' + hideCls.trim() + '" style="background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan)">K</i>Kavach</button>') +
+      '</div>';
+  }
+  h += '</div>';
+  if(S.toast) h += '<div class="toast"><b>' + S.toast.from + ' · now</b>' + S.toast.text + '</div>';
+  if(S.screen === "bank" && S.transfer === "hold"){
+    h += '<div class="overlay' + hideCls + '"><div class="big warn">Transfer on hold</div>' +
+      '<p>You are on a long call with an unknown caller and a large transfer has started. Kavach has asked Rahul to approve it.</p>' +
+      '<p style="color:var(--muted);font-size:12px">Real CBI, police or RBI officers never ask you to move money.</p></div>';
+  }
+  if(S.gcall === "ringing"){
+    h += '<div class="overlay" style="z-index:5"><div style="font-family:var(--mono);color:var(--amber);font-size:11px;letter-spacing:.14em">KAVACH CIRCLE · FAMILY CALL</div>' +
+      '<div class="big">Rahul (son) is calling</div><p>Your family wants to talk to you now.</p>' +
+      '<div class="row2"><button class="pbtn" data-a="none">Decline</button><button class="pbtn primary" data-a="answer">Answer</button></div></div>';
+  }
+  el.innerHTML = h;
+
+  // scammer's view
+  const sv = $("scamView");
+  sv.hidden = !S.share;
+  if(S.share){
+    let what = { call:"the video call", bank:"the SafeBank app", pin:"the home screen", home:"the home screen" }[S.screen] || "the screen";
+    $("scamViewText").innerHTML = "They see " + what + ". Every Kavach screen, overlay and alert shows as <span class=\"blk\">██████</span> because Kavach blocks screen capture." + (S.pinMode === "fakeoff" ? " After the duress PIN they also see <b>“Protection is off”</b>." : "");
+  }
+}
+
+/* ---------------- render guardian ---------------- */
+function gRender(){
+  const el = $("gScreen");
+  let h = '<div class="sbar"><span>10:' + String(6 + Math.floor(S.min)%54).padStart(2,"0") + '</span><span>KAVACH GUARDIAN</span></div><div class="content">';
+  const silent = S.guardianCards.some(c => c.kind === "silent");
+  h += '<div class="card"><h4>Watching over Mom</h4>' +
+    '<div class="kv"><span>Mom\'s phone</span>' + (silent ? '<b class="bad">Silent</b>' : (S.call ? '<b class="warn">On a call · ' + fmt(S.min) + '</b>' : '<b class="ok">Protected</b>')) + '</div>' +
+    '<div class="kv"><span>Last heartbeat</span><b>' + Math.max(0, Math.round((Date.now() - S.lastBeat)/1000)) + ' s ago</b></div>' +
+    '<div class="kv"><span>Paired</span><b>In person, by QR</b></div></div>';
+  S.guardianCards.forEach((c, i) => {
+    if(c.kind === "alert"){
+      h += '<div class="card alert"><h4>COERCION ALERT</h4><p style="color:var(--ink)">Mom has been on a video call with an unknown number for ' + Math.floor(S.min) + ' minutes, opened SafeBank and received an OTP for ₹4,80,000.</p>' +
+        '<ul class="checks"><li>Call over 30 min</li><li>Banking app opened mid-call</li><li>Bank OTP received</li></ul>';
+      if(S.countdown !== null && S.gcall === "none") h += '<p class="countdown">Calling Mom automatically in ' + Math.ceil(S.countdown) + ' s</p>';
+      h += '<div style="display:grid;gap:8px;margin-top:8px"><button class="pbtn primary" data-g="call"' + (S.gcall !== "none" ? " disabled" : "") + '>' + (S.gcall === "none" ? "Call Mom now" : (S.gcall === "ringing" ? "Ringing Mom…" : "Connected to Mom")) + '</button>';
+      if(S.transfer === "hold") h += '<div class="row2"><button class="pbtn" data-g="approve">Approve</button><button class="pbtn red" data-g="block">Block transfer</button></div>';
+      h += '</div></div>';
+    } else if(c.kind === "duress"){
+      h += '<div class="card alert red"><h4>DURESS PIN USED</h4><p style="color:var(--ink)">Mom entered her duress PIN. Someone is forcing her to switch Kavach off. Protection is still running.</p>' +
+        '<button class="pbtn primary" style="margin-top:8px" data-g="call"' + (S.gcall !== "none" ? " disabled" : "") + '>Call Mom now</button></div>';
+    } else if(c.kind === "silent"){
+      h += '<div class="card alert red"><h4>KAVACH WENT SILENT</h4><p style="color:var(--ink)">Mom\'s phone stopped sending heartbeats. The app may have been uninstalled or force-stopped.</p>' +
+        '<button class="pbtn primary" style="margin-top:8px" data-g="call"' + (S.gcall !== "none" ? " disabled" : "") + '>Call Mom now</button></div>';
+    } else if(c.kind === "disabled"){
+      h += '<div class="card"><h4 class="warn">Kavach turned off</h4><p>Mom switched protection off with her real PIN.</p></div>';
+    } else if(c.kind === "resolved"){
+      h += '<div class="card"><h4 class="ok">Update</h4><p>' + c.text + '</p></div>';
+    }
+  });
+  if(!S.guardianCards.length) h += '<p class="note" style="text-align:center;margin-top:20px">No alerts. You will only hear from Kavach if Mom looks to be in trouble.</p>';
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+/* ---------------- render center ---------------- */
+function render(){
+  const met = [S.c1, S.c2 && S.call, S.c3 && S.call];
+  ["c1","c2","c3"].forEach((id, i) => {
+    const box = $(id); box.classList.toggle("met", !!met[i]);
+    box.querySelector(".st").textContent = met[i] ? "MET" : "WAITING";
+  });
+  const n = met.filter(Boolean).length;
+  $("meter").style.width = (n / 3 * 100) + "%";
+  $("meter").style.background = n === 3 ? "var(--red)" : "var(--amber)";
+  $("meterTxt").textContent = n + " of 3 conditions" + (S.alert ? " · ALERT SENT" : "");
+  $("clock").textContent = S.call ? "Call time " + fmt(S.min) : "No active call";
+  const vk = $("vKav");
+  if(S.uninstalled){ vk.textContent = "KAVACH REMOVED"; vk.className = "bad"; }
+  else if(S.pinMode === "realoff"){ vk.textContent = "KAVACH OFF"; vk.className = "warn"; }
+  else if(S.duress){ vk.textContent = "DURESS · STILL ON"; vk.className = "bad"; }
+  else { vk.textContent = "KAVACH ON"; vk.className = "ok"; }
+  const silent = S.guardianCards.some(c => c.kind === "silent");
+  $("gHb").textContent = silent ? "HEARTBEAT LOST" : "LINKED"; $("gHb").className = silent ? "bad" : "ok";
+  $("bCall").disabled = S.call; $("bSkip").disabled = !S.call || S.min >= 30;
+  $("bShare").disabled = !S.call || S.share; $("bUninstall").disabled = S.uninstalled;
+  vRender(); gRender();
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("[data-a]"), k = e.target.closest("[data-k]"), g = e.target.closest("[data-g]");
+  if(a){
+    const act = a.dataset.a;
+    if(act === "tocall"){ if(S.call) S.screen = "call"; else startCall(); render(); }
+    else if(act === "bank") openBank();
+    else if(act === "hang") hangUp();
+    else if(act === "send") sendMoney();
+    else if(act === "otp") submitOtp();
+    else if(act === "home"){ S.screen = "home"; render(); }
+    else if(act === "pin"){ S.screen = "pin"; S.pin = ""; if(S.pinMode === "wrong") S.pinMode = "off"; render(); }
+    else if(act === "answer") answerGuardian();
+  } else if(k){ pinKey(k.dataset.k); }
+  else if(g){
+    if(g.dataset.g === "call") gCall();
+    if(g.dataset.g === "approve") gDecide(true);
+    if(g.dataset.g === "block") gDecide(false);
+  }
+});
+$("bCall").onclick = startCall;
+$("bSkip").onclick = () => { S.min = 30; rlog("Skipped ahead: call has run 30 minutes", "c"); tick(); };
+$("bShare").onclick = () => { S.share = true; rlog("Scammer: \"Share your screen so I can guide you\"", "c"); render(); };
+$("bUninstall").onclick = uninstall;
+$("bReset").onclick = () => { S = fresh(); C.used.clear(); rlog("Scenario reset", "c"); render(); };
+$("bReplay").onclick = () => { if(C.last){ rlog("Attacker replays a captured alert request…", "a"); relayReceive(C.last, "Replayed request"); } };
+$("bTamper").onclick = () => {
+  if(!C.last) return;
+  const env = JSON.parse(C.last.body);
+  const ct = unb64(env.ct); ct[0] ^= 0xff; env.ct = b64(ct); env.nonce = hex(crypto.getRandomValues(new Uint8Array(12)));
+  rlog("Attacker flips one byte and swaps the nonce in a captured request…", "a");
+  relayReceive({ body: JSON.stringify(env), sig: C.last.sig, type:"alert" }, "Tampered request");
+};
+$("bAuto").onclick = async () => {
+  S = fresh(); C.used.clear(); render();
+  const run = S.runId;
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
+  const alive = () => run === S.runId;
+  rlog("Running the full scenario…", "c");
+  startCall(); await wait(3000); if(!alive()) return;
+  S.share = true; render(); await wait(1800); if(!alive()) return;
+  S.min = 30; render(); await wait(2200); if(!alive()) return;
+  openBank(); await wait(2000); if(!alive()) return;
+  sendMoney(); await wait(4500); if(!alive()) return;
+  gDecide(false); await wait(2200); if(!alive()) return;
+  gCall(); await wait(2500); if(!alive()) return;
+  answerGuardian();
+};
+
+setupCrypto().then(render);
+render();
+setInterval(tick, 250);
+})();
+</script>
+</body>
+</html>
