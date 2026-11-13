@@ -209,6 +209,9 @@ class MainActivity : AppCompatActivity() {
         bar.addView(Ui.iconBtn(this, if (sub) R.drawable.ic_back else R.drawable.ic_menu) { v ->
             if (sub) nav("home") else showMenu(v)
         })
+        if (!sub) bar.addView(Ui.logo(this, 40).apply {
+            (layoutParams as LinearLayout.LayoutParams).marginEnd = Ui.dp(this@MainActivity, 10)
+        })
         val t = Ui.col(this)
         t.addView(Ui.tag(this, if (sub) "S.P.D" else if (isVictim()) "S.P.D · PROTECTED" else "S.P.D · GUARDIAN"))
         t.addView(Ui.text(this, title, 20f, Ui.INK, true))
@@ -262,7 +265,7 @@ class MainActivity : AppCompatActivity() {
     // ------------------------------------------------------------------ account: welcome, sign up, log in
 
     private fun welcomePage() {
-        val badge = Ui.ring(this, Ui.CYAN, 120)
+        val badge = Ui.logo(this, 140)
         add(centered(badge, 40))
         anims.add(Ui.spin(badge))
         add(centerText(Ui.text(this, "S.P.D", 34f, Ui.INK, true)).apply { setPadding(0, Ui.dp(this@MainActivity, 18), 0, 0) })
@@ -354,7 +357,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loginPage() {
-        val badge = Ui.ring(this, Ui.CYAN, 96)
+        val badge = Ui.logo(this, 110)
         add(centered(badge, 30))
         anims.add(Ui.spin(badge))
         add(centerText(Ui.text(this, "Welcome back, ${Prefs.name(this)}", 22f, Ui.INK, true)).apply {

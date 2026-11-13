@@ -187,6 +187,13 @@ object Ui {
         setOnClickListener { onClick() }
     }
 
+    /** The S.P.D logo. */
+    fun logo(c: Context, size: Int): ImageView = ImageView(c).apply {
+        setImageResource(R.drawable.logo)
+        adjustViewBounds = true
+        layoutParams = LinearLayout.LayoutParams(dp(c, size), dp(c, size))
+    }
+
     fun oval(c: Context, fill: Int, stroke: Int): GradientDrawable = GradientDrawable().apply {
         shape = GradientDrawable.OVAL
         setColor(fill)
