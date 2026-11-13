@@ -42,6 +42,8 @@ object Messenger {
             "HELP" -> "$PREFIX: $n needs you now. They tapped \"Call my family\" during a $mins-min call while opening $app. Call $ph."
             "APPROVE_REQ" -> "$PREFIX: $n wants to pay using $app during a $mins-min call. Reply YES to allow or NO to block (code $code). If unsure, call $ph first."
             "REMOTE" -> "$PREFIX ALERT: $n opened $app, a screen-sharing app, during a call. Scammers use these apps to control a phone and empty the bank account. Call $n now on $ph."
+            "SHARE" -> "$PREFIX ALERT: $n is sharing their phone screen in $app during a call. Scammers use this to watch bank apps and OTPs. Call $n now on $ph."
+            "RESET" -> "$PREFIX: Kavach Circle was reset on $n's phone, so protection is off until it is set up again. If you did not expect this, call $ph."
             "SOS" -> "$PREFIX SOS: $n pressed the help button and may be on a scam call right now. Call $ph now."
             "DURESS" -> "$PREFIX URGENT: $n entered the duress PIN. Someone may be forcing them to switch off protection. Call $ph now."
             "TAMPER" -> "$PREFIX: someone is removing Kavach Circle from $n's phone. Call $ph."
@@ -101,6 +103,7 @@ object Messenger {
             else -> "INFO"
         }
         val code = Regex("code (\\d{4})").find(body)?.groupValues?.get(1) ?: ""
+        Prefs.addAlert(c, type, body)
         AlertActivity.launch(c, type, body, code)
     }
 }

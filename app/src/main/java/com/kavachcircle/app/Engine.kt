@@ -56,6 +56,7 @@ object Engine {
     @Volatile var pauseCleared = false
     @Volatile var remoteDuringCall = false
     @Volatile var remoteCleared = false
+    @Volatile var shareDuringCall = false
     @Volatile var lastApp = ""
     @Volatile private var lastFg = ""
 
@@ -69,6 +70,7 @@ object Engine {
         pauseCleared = false
         remoteDuringCall = false
         remoteCleared = false
+        shareDuringCall = false
     }
 
     fun inCall(c: Context): Boolean {
@@ -119,7 +121,19 @@ object Engine {
                 Messenger.toGuardians(c, "REMOTE", minutes().toInt(), remote)
                 Notify.info(c, "Kavach Circle alerted your family", "You opened $remote during a call. Scammers use it to control your phone.")
             }
-            if (!remoteCleared && !InterventionActivity.visible) InterventionActivity.launch(c, remote, true)
+            if (!remoteCleared && !InterventionActivity.visible) InterventionActivity.launch(c, remote, 1)
+        }
+
+        // Screen-share watch: WhatsApp, Meet, Zoom and others show an ongoing notification while the
+        // screen is being shared. Seeing one during a call is treated the same way.
+        val share = ShareWatch.sharing()
+        if (onCall() && share != null) {
+            if (!shareDuringCall) {
+                shareDuringCall = true
+                Messenger.toGuardians(c, "SHARE", minutes().toInt(), share)
+                Notify.info(c, "Kavach Circle alerted your family", "Your screen is being shared in $share during a call.")
+            }
+            if (!remoteCleared && !InterventionActivity.visible) InterventionActivity.launch(c, share, 2)
         }
         if (onCall() && app != null) {
             paymentDuringCall = true

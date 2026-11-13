@@ -98,6 +98,10 @@ object Prefs {
         val s = salt(c)
         p(c).edit().putString("pinReal", Crypto.sha256(s + real)).putString("pinDuress", Crypto.sha256(s + duress)).apply()
     }
+    /** Guardian accounts have one PIN and no duress PIN. */
+    fun setPin(c: Context, real: String) {
+        p(c).edit().putString("pinReal", Crypto.sha256(salt(c) + real)).putString("pinDuress", "").apply()
+    }
     /** 0 = wrong, 1 = real PIN, 2 = duress PIN */
     fun checkPin(c: Context, pin: String): Int {
         val h = Crypto.sha256(salt(c) + pin)
@@ -125,6 +129,23 @@ object Prefs {
         .putInt("apState", if (yes) Engine.APPROVAL_YES else Engine.APPROVAL_NO).putString("apBy", by).commit()
     fun clearApproval(c: Context) = p(c).edit()
         .remove("apState").remove("apCode").remove("apAt").remove("apBy").apply()
+
+    // ---- alert history on a guardian's phone (newest first, last 20) ----
+    fun alerts(c: Context): List<Triple<Long, String, String>> {
+        val arr = try { JSONArray(p(c).getString("alerts", "[]")) } catch (e: Exception) { JSONArray() }
+        val out = ArrayList<Triple<Long, String, String>>()
+        for (i in 0 until arr.length()) {
+            val o = arr.getJSONObject(i)
+            out.add(Triple(o.optLong("t"), o.optString("type"), o.optString("body")))
+        }
+        return out
+    }
+    fun addAlert(c: Context, type: String, body: String) {
+        val arr = JSONArray()
+        arr.put(JSONObject().put("t", System.currentTimeMillis()).put("type", type).put("body", body))
+        alerts(c).take(19).forEach { arr.put(JSONObject().put("t", it.first).put("type", it.second).put("body", it.third)) }
+        p(c).edit().putString("alerts", arr.toString()).apply()
+    }
 
     fun resetAll(c: Context) = p(c).edit().clear().apply()
 }
