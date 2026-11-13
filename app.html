@@ -231,7 +231,7 @@ async function setupCrypto(){
     C.ok = true;
     rlog("Device keys created. Private keys are non-extractable.", "g");
     rlog("Victim signing key registered · fingerprint " + sfp, "c");
-    rlog("Guardian paired by in-person QR · fingerprint " + fp, "c");
+    rlog("Guardian Rahul added by name and number · key " + fp, "c");
   }catch(e){
     C.ok = false;
     rlog("Web Crypto is not available in this browser, so alerts are delivered unsigned in this demo.", "r");
@@ -497,7 +497,7 @@ function gRender(){
   h += '<div class="card"><h4>Watching over Mom</h4>' +
     '<div class="kv"><span>Mom\'s phone</span>' + (silent ? '<b class="bad">Silent</b>' : (S.call ? '<b class="warn">On a call · ' + fmt(S.min) + '</b>' : '<b class="ok">Protected</b>')) + '</div>' +
     '<div class="kv"><span>Last heartbeat</span><b>' + Math.max(0, Math.round((Date.now() - S.lastBeat)/1000)) + ' s ago</b></div>' +
-    '<div class="kv"><span>Paired</span><b>In person, by QR</b></div></div>';
+    '<div class="kv"><span>Added as</span><b>Guardian, by number</b></div></div>';
   S.guardianCards.forEach((c, i) => {
     if(c.kind === "alert"){
       h += '<div class="card alert"><h4>COERCION ALERT</h4><p style="color:var(--ink)">Mom has been on a video call with an unknown number for ' + Math.floor(S.min) + ' minutes, opened SafeBank and received an OTP for ₹4,80,000.</p>' +
