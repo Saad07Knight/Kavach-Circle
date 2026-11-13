@@ -4,7 +4,7 @@ Team Power Rangers · HackRush 2026 · Cybersecurity track
 
 Kavach Circle is a real Android app for the person you want to protect (for example, Mom). It watches for the pattern of a digital arrest scam: a long call, a payment app opened during that call, and a bank OTP arriving. When it sees the pattern, it puts a pause screen on top of Paytm, Google Pay, PhonePe and other payment apps, and texts her guardians.
 
-**Guardians don't need the app.** You add each guardian by name and number. They get plain, readable SMS alerts on any phone, and can reply **YES 1234** or **NO 1234** to approve or block a payment (the 4-digit code changes every time). A guardian can also install the app to get full-screen alerts, automatic calls and one-tap approve/block.
+**Guardians don't need the app.** You add each guardian by name and number. They get plain, readable SMS alerts on any phone, and can simply reply **YES** or **NO** by SMS to approve or block a payment (Hindi *haan* / *nahi* work too). Replies are accepted only from a saved guardian's number, and the guardian gets a confirmation SMS back. A guardian can also install the app to get full-screen alerts, automatic calls and one-tap approve/block.
 
 ---
 
@@ -55,6 +55,8 @@ This workspace couldn't build the APK itself, so GitHub builds it for you in the
 
 Install the same APK, choose **I'm a guardian**, and enter the protected person's name and number. Their Kavach SMS will then open full screen, call them automatically after 15 seconds, and offer Approve and Block buttons.
 
+> **Xiaomi, Redmi, POCO, Vivo, Oppo, Realme or OnePlus phone?** Also turn on **Autostart** for Kavach Circle (Settings › Apps › Kavach Circle › Autostart). Without it, these phones block SMS replies and OTPs from reaching the app while it is closed.
+>
 > If Android says **"Restricted setting"** while you are granting a permission, go to Settings › Apps › Kavach Circle › ⋮ (top right) › **Allow restricted settings**, then try again. Android does this for apps installed from outside the Play Store.
 
 ---
@@ -65,7 +67,7 @@ Install the same APK, choose **I'm a guardian**, and enter the protected person'
 
 1. From a third phone, video-call the protected phone on WhatsApp. Play the "CBI officer".
 2. After 1 minute, the caller says "open Google Pay". When the protected phone opens Google Pay, **Kavach's pause screen covers it**.
-3. Tap **Ask my family to approve this payment**. The guardian gets an SMS with a code. They reply **NO 1234** (or tap Block in the guardian app), and the pause screen shows *"Rahul said do not pay"*.
+3. Tap **Ask my family to approve this payment**. The guardian gets an SMS with a code. They reply **NO** (or tap Block in the guardian app). The pause screen comes to the front on the protected phone with *"Rahul replied NO. Do not pay."*
 4. Send the protected phone an SMS such as `Your OTP is 482913 for UPI transfer`. Now all three signals are met, so the guardian gets a **Kavach Circle ALERT** SMS. With the guardian app, it also opens full screen and calls the protected phone.
 5. **Duress PIN:** tap **Turn off protection** and enter the duress PIN. The phone looks switched off, but the guardian gets an **URGENT** SMS.
 6. **Screen share:** start a screen share to the caller. Kavach's screens show as black to the caller.
@@ -98,6 +100,6 @@ Code map (`app/src/main/java/com/kavachcircle/app/`):
 - **The pause screen is a full screen of its own, not a floating overlay.** Many UPI apps hide floating overlays to block overlay attacks, but they can't stop another app's screen from opening on top.
 - **The app can't stop a payment inside Google Pay.** It pauses the person, pulls the family in and asks for approval. A hard bank-side hold needs a bank API (Phase 2 of the roadmap).
 - **Alerts cost one SMS each** on the protected person's plan.
-- **Alerts are plain SMS so any phone can read them.** Approvals are accepted only from a saved guardian number and only with that request's one-time code.
+- **Alerts are plain SMS so any phone can read them.** Approvals are accepted only from a saved guardian's number, only while a request is waiting (up to 30 minutes), and a reply carrying an old request's code is rejected.
 - **It runs on Android 8 and above. iPhone doesn't allow these signals.**
 - **The signing key in `app/kavach-demo.keystore` is for the hackathon only.** Make a private key before any public release.

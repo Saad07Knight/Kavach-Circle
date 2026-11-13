@@ -268,6 +268,8 @@ class MainActivity : AppCompatActivity() {
                 card.addView(Ui.button(this, "Allow: ${p.label}") { p.request() })
             }
         }
+        card.addView(Ui.text(this,
+            "On Xiaomi, Redmi, POCO, Vivo, Oppo, Realme or OnePlus phones, also turn on Autostart for Kavach Circle (Settings › Apps › Kavach Circle › Autostart). Without it, replies and OTPs can be missed when the app is closed.", 12f, Ui.AMBER))
         if (missing > 0) card.addView(Ui.text(this,
             "If Android says \"Restricted setting\", open Settings › Apps › Kavach Circle › ⋮ › Allow restricted settings, then try again.", 12f, Ui.MUTED))
         root.addView(card)

@@ -40,7 +40,7 @@ object Messenger {
         return when (type) {
             "ALERT" -> "$PREFIX ALERT: $n has been on a call for $mins min, opened $app and just got a bank OTP. This looks like a digital arrest scam. Call $n now on $ph."
             "HELP" -> "$PREFIX: $n needs you now. They tapped \"Call my family\" during a $mins-min call while opening $app. Call $ph."
-            "APPROVE_REQ" -> "$PREFIX: $n wants to pay using $app during a $mins-min call. Reply YES $code to allow or NO $code to block. If unsure, call $ph first."
+            "APPROVE_REQ" -> "$PREFIX: $n wants to pay using $app during a $mins-min call. Reply YES to allow or NO to block (code $code). If unsure, call $ph first."
             "DURESS" -> "$PREFIX URGENT: $n entered the duress PIN. Someone may be forcing them to switch off protection. Call $ph now."
             "TAMPER" -> "$PREFIX: someone is removing Kavach Circle from $n's phone. Call $ph."
             "DISABLED" -> "$PREFIX: $n turned protection off with their PIN."
@@ -57,13 +57,33 @@ object Messenger {
         Prefs.activeGuardians(c).forEach { sms(c, it.phone, msg) }
     }
 
-    /** Called on the protected phone for every SMS that is not an OTP. */
+    private val REPLY = Regex(
+        "^\\s*(yes|ok|haan|han|ha|y|nahin|nahi|no|na|n)\\b[\\s.,!]*(\\d{4})?",
+        RegexOption.IGNORE_CASE
+    )
+    private val YES_WORDS = setOf("yes", "ok", "haan", "han", "ha", "y")
+
+    /**
+     * Called on the protected phone for every incoming SMS. Handles a guardian's reply to a payment
+     * request: "YES", "NO", "YES 4821", "no 4821", "haan", "nahi". Returns true if it was a reply.
+     */
     fun onVictimSms(c: Context, from: String, body: String): Boolean {
         val g = Prefs.guardianByPhone(c, from) ?: return false
-        val m = Regex("^\\s*(YES|NO|Y|N)\\s*(\\d{4})", RegexOption.IGNORE_CASE).find(body) ?: return false
-        if (Engine.approval != Engine.APPROVAL_WAITING) return true
-        if (m.groupValues[2] != Engine.approvalCode) return true
-        Engine.onApproval(c, m.groupValues[1].uppercase().startsWith("Y"), g.name)
+        val m = REPLY.find(body) ?: return false
+        val yes = m.groupValues[1].lowercase() in YES_WORDS
+        val code = m.groupValues[2]
+        val expected = Prefs.approvalCode(c)
+        if (Prefs.approvalState(c) != Engine.APPROVAL_WAITING) {
+            sms(c, g.phone, "$PREFIX: there is no payment waiting for your approval right now.")
+            return true
+        }
+        if (code.isNotEmpty() && code != expected) {
+            sms(c, g.phone, "$PREFIX: that code is from an older request. Reply YES $expected or NO $expected.")
+            return true
+        }
+        Engine.onApproval(c, yes, g.name)
+        sms(c, g.phone, if (yes) "$PREFIX: got your YES. ${me(c)} can continue the payment."
+            else "$PREFIX: got your NO. ${me(c)} has been told not to pay.")
         return true
     }
 
@@ -78,7 +98,7 @@ object Messenger {
             body.contains("removing Kavach") -> "TAMPER"
             else -> "INFO"
         }
-        val code = Regex("YES (\\d{4})").find(body)?.groupValues?.get(1) ?: ""
+        val code = Regex("code (\\d{4})").find(body)?.groupValues?.get(1) ?: ""
         AlertActivity.launch(c, type, body, code)
     }
 }

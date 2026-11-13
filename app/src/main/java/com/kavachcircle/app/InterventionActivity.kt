@@ -107,13 +107,15 @@ class InterventionActivity : AppCompatActivity() {
     private fun update() {
         val wait = Prefs.continueWaitSec(this)
         val left = wait - ((System.currentTimeMillis() - openedAt) / 1000).toInt()
-        when (Engine.approval) {
+        val by = Prefs.approverName(this).ifBlank { "Your family" }
+        when (Prefs.approvalState(this)) {
             Engine.APPROVAL_WAITING -> {
                 status.text = "Waiting for your family to reply YES or NO by SMS…"
+                status.setTextColor(Ui.CYAN)
                 askBtn.isEnabled = false
             }
             Engine.APPROVAL_YES -> {
-                status.text = "${Engine.approverName} approved this payment."
+                status.text = "$by replied YES. You can continue to the payment."
                 status.setTextColor(Ui.GREEN)
                 continueBtn.text = "Continue to payment"
                 continueBtn.isEnabled = true
@@ -121,7 +123,7 @@ class InterventionActivity : AppCompatActivity() {
                 return
             }
             Engine.APPROVAL_NO -> {
-                status.text = "${Engine.approverName} said do not pay. Hang up the call."
+                status.text = "$by replied NO. Do not pay. Hang up the call."
                 status.setTextColor(Ui.RED)
                 continueBtn.isEnabled = false
                 continueBtn.text = "Payment blocked by your family"
@@ -148,17 +150,23 @@ class InterventionActivity : AppCompatActivity() {
     }
 
     private fun askApproval() {
-        Engine.approvalCode = Crypto.approvalCode()
-        Engine.approval = Engine.APPROVAL_WAITING
-        Messenger.toGuardians(this, "APPROVE_REQ", Engine.minutes().toInt(), app, Engine.approvalCode)
+        if (Prefs.activeGuardians(this).isEmpty()) {
+            status.text = "Add a guardian in Kavach Circle first."
+            status.setTextColor(Ui.RED)
+            return
+        }
+        val code = Crypto.approvalCode()
+        Prefs.startApproval(this, code)
+        Messenger.toGuardians(this, "APPROVE_REQ", Engine.minutes().toInt(), app, code)
         update()
     }
 
     private fun continueAnyway() {
-        if (Engine.approval != Engine.APPROVAL_YES) {
+        if (Prefs.approvalState(this) != Engine.APPROVAL_YES) {
             Messenger.toGuardians(this, "CONTINUED", app = app)
         }
         Engine.pauseCleared = true
+        Prefs.clearApproval(this)
         finish()
     }
 

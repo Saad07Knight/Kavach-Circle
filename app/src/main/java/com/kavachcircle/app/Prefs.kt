@@ -108,5 +108,23 @@ object Prefs {
         }
     }
 
+    // ---- payment approval, kept on disk so it survives the call ending or Android closing the app ----
+    private const val APPROVAL_TTL_MS = 30L * 60 * 1000
+
+    fun approvalState(c: Context): Int {
+        val st = p(c).getInt("apState", Engine.APPROVAL_NONE)
+        val age = System.currentTimeMillis() - p(c).getLong("apAt", 0L)
+        return if (st == Engine.APPROVAL_WAITING && age > APPROVAL_TTL_MS) Engine.APPROVAL_NONE else st
+    }
+    fun approvalCode(c: Context): String = p(c).getString("apCode", "") ?: ""
+    fun approverName(c: Context): String = p(c).getString("apBy", "") ?: ""
+    fun startApproval(c: Context, code: String) = p(c).edit()
+        .putInt("apState", Engine.APPROVAL_WAITING).putString("apCode", code)
+        .putLong("apAt", System.currentTimeMillis()).putString("apBy", "").commit()
+    fun setApprovalResult(c: Context, yes: Boolean, by: String) = p(c).edit()
+        .putInt("apState", if (yes) Engine.APPROVAL_YES else Engine.APPROVAL_NO).putString("apBy", by).commit()
+    fun clearApproval(c: Context) = p(c).edit()
+        .remove("apState").remove("apCode").remove("apAt").remove("apBy").apply()
+
     fun resetAll(c: Context) = p(c).edit().clear().apply()
 }
