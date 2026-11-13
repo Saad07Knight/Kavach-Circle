@@ -42,9 +42,6 @@ object Engine {
     @Volatile var otpDuringCall = false
     @Volatile var alertSent = false
     @Volatile var pauseCleared = false
-    @Volatile var approval = APPROVAL_NONE
-    @Volatile var approverName = ""
-    @Volatile var approvalCode = ""
     @Volatile var lastApp = ""
     @Volatile private var lastFg = ""
 
@@ -56,9 +53,6 @@ object Engine {
         otpDuringCall = false
         alertSent = false
         pauseCleared = false
-        approval = APPROVAL_NONE
-        approverName = ""
-        approvalCode = ""
     }
 
     fun inCall(c: Context): Boolean {
@@ -90,6 +84,7 @@ object Engine {
             if (callStart == 0L) {
                 callStart = now
                 resetCall()
+                Prefs.clearApproval(c)
             }
             lastInCall = now
         } else if (callStart != 0L && now - lastInCall > 20_000) {
@@ -122,8 +117,10 @@ object Engine {
     }
 
     fun onApproval(c: Context, yes: Boolean, who: String) {
-        approval = if (yes) APPROVAL_YES else APPROVAL_NO
-        approverName = who
-        Notify.info(c, if (yes) "$who approved the payment" else "$who said do not pay", "Open Kavach Circle for details.")
+        Prefs.setApprovalResult(c, yes, who)
+        Notify.info(c, if (yes) "$who approved the payment" else "$who said do not pay",
+            if (yes) "You can continue to the payment." else "Do not pay. Hang up the call.")
+        // Bring the pause screen to the front so the answer shows on the main phone straight away.
+        InterventionActivity.launch(c, lastApp.ifBlank { "a payment app" })
     }
 }
