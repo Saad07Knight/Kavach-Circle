@@ -210,7 +210,7 @@ class MainActivity : AppCompatActivity() {
             if (sub) nav("home") else showMenu(v)
         })
         val t = Ui.col(this)
-        t.addView(Ui.tag(this, if (sub) "KAVACH CIRCLE" else if (isVictim()) "KAVACH CIRCLE · PROTECTED" else "KAVACH CIRCLE · GUARDIAN"))
+        t.addView(Ui.tag(this, if (sub) "S.P.D" else if (isVictim()) "S.P.D · PROTECTED" else "S.P.D · GUARDIAN"))
         t.addView(Ui.text(this, title, 20f, Ui.INK, true))
         bar.addView(t)
         if (!sub) {
@@ -226,10 +226,10 @@ class MainActivity : AppCompatActivity() {
         val items = if (isVictim()) listOf(
             "Profile" to "profile", "Guardians" to "guardians", "PIN and duress PIN" to "pins",
             "Screen-share shield" to "shield", "Permissions" to "perms", "Settings" to "settings",
-            "How Kavach works" to "how", "Log out" to "logout"
+            "How S.P.D works" to "how", "Log out" to "logout"
         ) else listOf(
             "Profile" to "profile", "Person I protect" to "person", "Permissions" to "perms",
-            "How Kavach works" to "how", "Log out" to "logout"
+            "How S.P.D works" to "how", "Log out" to "logout"
         )
         val m = PopupMenu(this, anchor)
         items.forEachIndexed { i, e -> m.menu.add(0, i, i, e.first) }
@@ -265,9 +265,10 @@ class MainActivity : AppCompatActivity() {
         val badge = Ui.ring(this, Ui.CYAN, 120)
         add(centered(badge, 40))
         anims.add(Ui.spin(badge))
-        add(centerText(Ui.tag(this, "KAVACH CIRCLE")).apply { setPadding(0, Ui.dp(this@MainActivity, 22), 0, 0) })
+        add(centerText(Ui.text(this, "S.P.D", 34f, Ui.INK, true)).apply { setPadding(0, Ui.dp(this@MainActivity, 18), 0, 0) })
+        add(centerText(Ui.tag(this, "SCAM PROTECTION & DETECTION")))
         add(centerText(Ui.title(this, "Stop scam calls before the money moves")))
-        add(centerText(Ui.text(this, "Kavach spots the pattern of a digital arrest scam on this phone and pulls your family in while the call is still live.", 15f, Ui.MUTED)))
+        add(centerText(Ui.text(this, "S.P.D spots the pattern of a digital arrest scam on this phone and pulls your family in while the call is still live.", 15f, Ui.MUTED)))
 
         val c = Ui.card(this)
         listOf(
@@ -321,7 +322,7 @@ class MainActivity : AppCompatActivity() {
         add(Ui.tag(this, "STEP 2 OF 2"))
         add(Ui.title(this, "Choose your PIN"))
         add(Ui.bar(this, 1f, Ui.CYAN))
-        add(Ui.text(this, "You will enter this 4-digit PIN each time you open Kavach Circle.", 14f, Ui.MUTED).apply {
+        add(Ui.text(this, "You will enter this 4-digit PIN each time you open S.P.D.", 14f, Ui.MUTED).apply {
             setPadding(0, Ui.dp(this@MainActivity, 14), 0, 0)
         })
         val real = Ui.edit(this, "PIN (4 digits)", Ui.PIN_INPUT)
@@ -331,7 +332,7 @@ class MainActivity : AppCompatActivity() {
         if (victim) {
             val c = Ui.card(this, Ui.AMBER)
             c.addView(Ui.text(this, "What is a duress PIN?", 15f, Ui.AMBER, true))
-            c.addView(Ui.text(this, "If a caller ever forces you to open Kavach and switch it off, enter this second PIN instead. The app will look switched off, but it keeps protecting you and quietly alerts your family.", 13f, Ui.MUTED))
+            c.addView(Ui.text(this, "If a caller ever forces you to open S.P.D and switch it off, enter this second PIN instead. The app will look switched off, but it keeps protecting you and quietly alerts your family.", 13f, Ui.MUTED))
             add(c)
         }
         add(Ui.button(this, "Finish", Ui.CYAN, Ui.DARK) {
@@ -471,7 +472,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun forgotPin() {
-        AlertDialog.Builder(this).setTitle("Reset Kavach Circle?")
+        AlertDialog.Builder(this).setTitle("Reset S.P.D?")
             .setMessage("The PIN cannot be recovered. Resetting erases your account on this phone, and you set it up again." +
                 if (isVictim()) " Your guardians will be told by SMS that protection was reset." else "")
             .setPositiveButton("Reset") { _, _ ->
@@ -550,7 +551,7 @@ class MainActivity : AppCompatActivity() {
             Ui.tile(this, R.drawable.ic_info, "How it works", "The rule in plain words", Ui.CYAN) { nav("how") },
             Ui.tile(this, R.drawable.ic_user, "Profile", "Your account", Ui.CYAN) { nav("profile") }
         ))
-        add(Ui.text(this, "Kavach never records calls and never reads your chats.", 12f, Ui.MUTED).apply {
+        add(Ui.text(this, "S.P.D never records calls and never reads your chats.", 12f, Ui.MUTED).apply {
             setPadding(0, Ui.dp(this@MainActivity, 16), 0, 0)
         })
     }
@@ -567,7 +568,7 @@ class MainActivity : AppCompatActivity() {
     private fun liveText(): String {
         if (!isVictim()) return ""
         if (!Prefs.enabled(this) || Prefs.fakeOff(this)) return "Turn protection on to start watching."
-        if (!Engine.onCall()) return "No call right now. Kavach is watching quietly."
+        if (!Engine.onCall()) return "No call right now. S.P.D is watching quietly."
         val m = Engine.minutes()
         return "On a call · ${m.toInt()} min ${((m - m.toInt()) * 60).toInt()} s" +
             (if (Engine.alertSent || Engine.remoteDuringCall || Engine.shareDuringCall) "\nYour family has been alerted." else "")
@@ -630,7 +631,7 @@ class MainActivity : AppCompatActivity() {
         r.addView(badge)
         val t = Ui.col(this)
         t.addView(Ui.text(this, if (ok) "Shield is on" else "One permission needed", 18f, if (ok) Ui.GREEN else Ui.AMBER, true))
-        t.addView(Ui.text(this, if (ok) "Kavach is watching for screen sharing during calls." else "Allow notification access so Kavach can tell when a video call starts sharing your screen.", 13f, Ui.MUTED))
+        t.addView(Ui.text(this, if (ok) "S.P.D is watching for screen sharing during calls." else "Allow notification access so S.P.D can tell when a video call starts sharing your screen.", 13f, Ui.MUTED))
         r.addView(t)
         c.addView(r)
         if (!ok) c.addView(Ui.button(this, "Allow notification access", Ui.AMBER, Ui.DARK) {
@@ -640,13 +641,13 @@ class MainActivity : AppCompatActivity() {
 
         val a = Ui.card(this)
         a.addView(Ui.text(this, "Screen sharing inside a video call", 16f, Ui.INK, true))
-        a.addView(Ui.text(this, "Scammers on WhatsApp video calls ask you to tap \"Share screen\" so they can watch your bank app and OTPs. If sharing starts in WhatsApp, Google Meet, Zoom, Telegram, Teams, Skype or Signal during a call, Kavach shows a red stop screen and texts your guardians. The caller sees only a black screen in place of the warning.", 13f, Ui.MUTED))
+        a.addView(Ui.text(this, "Scammers on WhatsApp video calls ask you to tap \"Share screen\" so they can watch your bank app and OTPs. If sharing starts in WhatsApp, Google Meet, Zoom, Telegram, Teams, Skype or Signal during a call, S.P.D shows a red stop screen and texts your guardians. The caller sees only a black screen in place of the warning.", 13f, Ui.MUTED))
         add(a)
         val b = Ui.card(this)
         b.addView(Ui.text(this, "Remote-control apps", 16f, Ui.INK, true))
         b.addView(Ui.text(this, "Opening AnyDesk, TeamViewer, RustDesk, AirDroid or Zoho Assist during any call triggers the same stop screen and alert.", 13f, Ui.MUTED))
         add(b)
-        add(Ui.text(this, "Privacy: Kavach looks only at the ongoing call notification from these apps, and only for screen-share wording. It never reads your messages.", 12f, Ui.MUTED).apply {
+        add(Ui.text(this, "Privacy: S.P.D looks only at the ongoing call notification from these apps, and only for screen-share wording. It never reads your messages.", 12f, Ui.MUTED).apply {
             setPadding(0, Ui.dp(this@MainActivity, 12), 0, 0)
         })
     }
@@ -684,7 +685,7 @@ class MainActivity : AppCompatActivity() {
         val t = Ui.col(this)
         if (linked) {
             t.addView(Ui.text(this, "Watching over $who", 20f, Ui.CYAN, true))
-            t.addView(Ui.text(this, "Kavach alerts from ${Prefs.victimPhone(this)} open full screen on this phone.", 13f, Ui.MUTED))
+            t.addView(Ui.text(this, "S.P.D alerts from ${Prefs.victimPhone(this)} open full screen on this phone.", 13f, Ui.MUTED))
         } else {
             t.addView(Ui.text(this, "Who are you protecting?", 20f, Ui.AMBER, true))
             t.addView(Ui.text(this, "Add the person who made you their guardian.", 13f, Ui.MUTED))
@@ -703,7 +704,7 @@ class MainActivity : AppCompatActivity() {
         val alerts = Prefs.alerts(this)
         if (alerts.isEmpty()) {
             add(Ui.card(this).apply {
-                addView(Ui.text(this@MainActivity, "No alerts yet. You will only hear from Kavach if $who looks to be in trouble.", 14f, Ui.MUTED))
+                addView(Ui.text(this@MainActivity, "No alerts yet. You will only hear from S.P.D if $who looks to be in trouble.", 14f, Ui.MUTED))
             })
         }
         val fmt = SimpleDateFormat("d MMM, h:mm a", Locale.getDefault())
@@ -738,7 +739,7 @@ class MainActivity : AppCompatActivity() {
     private fun personPage() {
         topBar("Person I protect", true)
         val c = Ui.card(this, Ui.CYAN)
-        c.addView(Ui.text(this, "Enter the name and number of the person who added you as their guardian. Kavach SMS from that number will open full screen here.", 13f, Ui.MUTED))
+        c.addView(Ui.text(this, "Enter the name and number of the person who added you as their guardian. S.P.D SMS from that number will open full screen here.", 13f, Ui.MUTED))
         val n = Ui.edit(this, "Their name, e.g. Mom")
         val ph = Ui.edit(this, "Their 10-digit mobile number", Ui.PHONE_INPUT)
         n.setText(Prefs.victimName(this))
@@ -788,19 +789,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun howPage() {
-        topBar("How Kavach works", true)
+        topBar("How S.P.D works", true)
         val steps = if (isVictim()) listOf(
-            "Kavach watches three signals" to "A call running 30 minutes or more, a payment or bank app opened during it, and a bank OTP arriving.",
+            "S.P.D watches three signals" to "A call running 30 minutes or more, a payment or bank app opened during it, and a bank OTP arriving.",
             "It pauses the payment" to "When you open a payment app during a long call, a pause screen appears on top. You can call your family or ask them to approve.",
             "Your family decides with you" to "Guardians get an SMS and reply YES or NO. Only replies from saved guardians count.",
-            "Screen sharing sets it off at once" to "If your screen is shared in a video call, or a remote-control app opens during a call, Kavach stops you and alerts your family.",
-            "A duress PIN for the worst case" to "Forced to switch Kavach off? Enter the duress PIN. It looks off, stays on, and tells your family."
+            "Screen sharing sets it off at once" to "If your screen is shared in a video call, or a remote-control app opens during a call, S.P.D stops you and alerts your family.",
+            "A duress PIN for the worst case" to "Forced to switch S.P.D off? Enter the duress PIN. It looks off, stays on, and tells your family."
         ) else listOf(
             "COERCION ALERT" to "A long call, a payment app and a bank OTP happened together. Call them straight away.",
             "Payment approval needed" to "They want to pay during a long call. Reply NO unless you know exactly who they are paying.",
             "Screen sharing or remote control" to "A scammer may be watching their phone. Call them and tell them to hang up.",
-            "DURESS PIN USED" to "Someone is forcing them to switch Kavach off. Call them, and consider calling 1930 or the police.",
-            "Kavach is being removed" to "Someone is taking protection off their phone. Check in with them."
+            "DURESS PIN USED" to "Someone is forcing them to switch S.P.D off. Call them, and consider calling 1930 or the police.",
+            "S.P.D is being removed" to "Someone is taking protection off their phone. Check in with them."
         )
         steps.forEachIndexed { i, s ->
             val c = Ui.card(this)
@@ -855,10 +856,10 @@ class MainActivity : AppCompatActivity() {
                 { open(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }),
             callPerm(),
             notifPerm(),
-            Perm("Tamper alarm: tell family if someone tries to remove Kavach", { dpm.isAdminActive(admin) }, {
+            Perm("Tamper alarm: tell family if someone tries to remove S.P.D", { dpm.isAdminActive(admin) }, {
                 open(Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
                     .putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, admin)
-                    .putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Lets Kavach Circle warn your family before it can be uninstalled."))
+                    .putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Lets S.P.D warn your family before it can be uninstalled."))
             }),
             batteryPerm()
         )
@@ -884,11 +885,11 @@ class MainActivity : AppCompatActivity() {
         }
         add(card)
         add(Ui.text(this,
-            "On Xiaomi, Redmi, POCO, Vivo, Oppo, Realme or OnePlus phones, also turn on Autostart for Kavach Circle (Settings › Apps › Kavach Circle › Autostart). Without it, replies and OTPs can be missed when the app is closed.", 12f, Ui.AMBER).apply {
+            "On Xiaomi, Redmi, POCO, Vivo, Oppo, Realme or OnePlus phones, also turn on Autostart for S.P.D (Settings › Apps › S.P.D › Autostart). Without it, replies and OTPs can be missed when the app is closed.", 12f, Ui.AMBER).apply {
             setPadding(0, Ui.dp(this@MainActivity, 12), 0, 0)
         })
         if (missing > 0) add(Ui.text(this,
-            "If Android says \"Restricted setting\", open Settings › Apps › Kavach Circle › ⋮ › Allow restricted settings, then try again.", 12f, Ui.MUTED))
+            "If Android says \"Restricted setting\", open Settings › Apps › S.P.D › ⋮ › Allow restricted settings, then try again.", 12f, Ui.MUTED))
     }
 
     @Suppress("DEPRECATION")
@@ -903,7 +904,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun open(i: Intent) {
-        try { startActivity(i) } catch (e: Exception) { toast("Open Settings and allow this for Kavach Circle") }
+        try { startActivity(i) } catch (e: Exception) { toast("Open Settings and allow this for S.P.D") }
     }
 
     // ------------------------------------------------------------------ actions
@@ -926,7 +927,7 @@ class MainActivity : AppCompatActivity() {
         val gs = Prefs.activeGuardians(this)
         if (gs.isEmpty()) { toast("Add a guardian first"); return }
         AlertDialog.Builder(this).setTitle("Alert your family now?")
-            .setMessage("Kavach will text your guardians and call ${gs[0].name}.")
+            .setMessage("S.P.D will text your guardians and call ${gs[0].name}.")
             .setPositiveButton("Yes, alert them") { _, _ ->
                 if (granted(Manifest.permission.SEND_SMS)) Messenger.toGuardians(this, "SOS")
                 call(gs[0].phone)
@@ -995,7 +996,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addGuardianDialog() {
-        if (!granted(Manifest.permission.SEND_SMS)) { toast("Allow SMS first, so Kavach can text your guardian"); nav("perms"); return }
+        if (!granted(Manifest.permission.SEND_SMS)) { toast("Allow SMS first, so S.P.D can text your guardian"); nav("perms"); return }
         val n = Ui.edit(this, "Guardian's name, e.g. Rahul")
         val ph = Ui.edit(this, "Guardian's 10-digit mobile number", Ui.PHONE_INPUT)
         val box = LinearLayout(this).apply {

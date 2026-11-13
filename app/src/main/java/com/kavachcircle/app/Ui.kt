@@ -22,7 +22,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 
-/** Small view helpers so the app needs no XML layouts. Colours match the Kavach Circle deck and website. */
+/** Small view helpers so the app needs no XML layouts. Colours match the S.P.D deck and website. */
 object Ui {
     val BG = 0xFF070B14.toInt()
     val PANEL = 0xFF0F1A2B.toInt()

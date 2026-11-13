@@ -77,7 +77,7 @@
         <service
             android:name=".ShareWatch"
             android:exported="true"
-            android:label="Kavach Circle screen-share watch"
+            android:label="S.P.D screen-share watch"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />

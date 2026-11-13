@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kavach Circle Live Demo</title>
+<title>S.P.D Live Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Ops console: victim phone | engine + relay | guardian phone. Cyan = system, amber = Kavach acting, red = threat. */
+  /* Ops console: victim phone | engine + relay | guardian phone. Cyan = system, amber = S.P.D acting, red = threat. */
   --bg:#070B14; --panel:#0F1A2B; --panel2:#132238; --line:#22324A;
   --ink:#E6EDF7; --muted:#8FA3BF; --cyan:#22D3EE; --amber:#F5A524; --red:#FF4D6D; --green:#34D399;
   --display:"Chakra Petch","Arial Narrow",Arial,sans-serif;
@@ -128,7 +128,7 @@ header a{margin-left:auto;color:var(--muted);font-size:13px}
 <header>
   <div class="brand">
     <svg width="28" height="25" viewBox="0 0 34 30" aria-hidden="true"><polygon points="8.5,0 25.5,0 34,15 25.5,30 8.5,30 0,15" fill="none" stroke="#22D3EE" stroke-width="2"/><path d="M17 7 11 9.2v4.3c0 3.7 2.6 7 6 8 3.4-1 6-4.3 6-8V9.2L17 7z" fill="#F5A524"/></svg>
-    KAVACH CIRCLE <small>LIVE PROTOTYPE</small>
+    S.P.D <small>SCAM PROTECTION &amp; DETECTION · LIVE DEMO</small>
   </div>
   <a href="index.html">Back to the website</a>
 </header>
@@ -136,7 +136,7 @@ header a{margin-left:auto;color:var(--muted);font-size:13px}
 <main class="layout">
   <!-- VICTIM -->
   <section aria-labelledby="vt">
-    <p class="col-title" id="vt"><span>Victim's phone · Sunita, 64</span><span id="vKav" class="ok">KAVACH ON</span></p>
+    <p class="col-title" id="vt"><span>Victim's phone · Sunita, 64</span><span id="vKav" class="ok">S.P.D ON</span></p>
     <div class="phone"><div class="screen" id="vScreen"></div></div>
     <div class="scamview" id="scamView" hidden><b>WHAT THE SCAMMER SEES ON SCREEN SHARE</b><div id="scamViewText" style="margin-top:6px"></div></div>
   </section>
@@ -151,26 +151,28 @@ header a{margin-left:auto;color:var(--muted);font-size:13px}
         <button class="ctrl" id="bCall">Start scam video call</button>
         <button class="ctrl" id="bSkip">Skip to 30 min</button>
         <button class="ctrl" id="bShare">Scammer asks for screen share</button>
-        <button class="ctrl danger" id="bUninstall">Scammer says "uninstall Kavach"</button>
+        <button class="ctrl" id="bRemote">Scammer says "install AnyDesk"</button>
+        <button class="ctrl danger" id="bUninstall">Scammer says "uninstall S.P.D"</button>
         <button class="ctrl" id="bReset">Reset</button>
       </div>
     </section>
 
     <section class="panel" aria-labelledby="et">
       <h3 id="et">On-device rule engine</h3>
-      <p class="sub">A fixed rule, no AI. All three must be true during the same call.</p>
+      <p class="sub">A fixed rule, no AI. The first three together alert the family. The fourth alerts them on its own.</p>
       <div class="conds">
         <div class="cond" id="c1">Call running 30+ minutes <span class="st" id="c1s">WAITING</span></div>
         <div class="cond" id="c2">Banking app opened during the call <span class="st">WAITING</span></div>
         <div class="cond" id="c3">Bank OTP received during the call <span class="st">WAITING</span></div>
+        <div class="cond" id="c4">Screen sharing or remote-control app during a call <span class="st">WAITING</span></div>
       </div>
       <div class="meter" aria-hidden="true"><div id="meter"></div></div>
       <div class="meterlbl"><span id="meterTxt">0 of 3 conditions</span><span id="clock">No active call</span></div>
     </section>
 
     <section class="panel" aria-labelledby="rt">
-      <h3 id="rt">Kavach relay server</h3>
-      <p class="sub">Real Web Crypto running in your browser: ECDSA P-256 signatures, ECDH key exchange, AES-256-GCM. The relay checks signatures and nonces but cannot read alerts.</p>
+      <h3 id="rt">Encrypted relay (Phase 2 design)</h3>
+      <p class="sub">Today the Android app sends alerts by SMS. This panel shows the planned upgrade, with real Web Crypto running in your browser: ECDSA P-256 signatures, ECDH key exchange, AES-256-GCM. The relay checks signatures and nonces but cannot read alerts.</p>
       <div class="ctrls" style="margin-bottom:10px">
         <button class="ctrl danger" id="bReplay" disabled>Replay a captured request</button>
         <button class="ctrl danger" id="bTamper" disabled>Tamper with a captured request</button>
@@ -205,7 +207,7 @@ function fresh(){
   return { call:false, min:0, c1:false, c2:false, c3:false, alert:false, screen:"home",
     transfer:"idle", otpShown:false, kavachOn:true, uninstalled:false, duress:false, share:false,
     pin:"", pinMode:"off", gcall:"none", guardianCards:[], countdown:null, lastBeat:Date.now(), runId:(S?S.runId+1:1),
-    toast:null, balance:625000 };
+    toast:null, balance:625000, stop:null, shareSeen:false };
 }
 S = fresh();
 
@@ -286,6 +288,9 @@ function guardianReceive(m){
     S.guardianCards.unshift({kind:"duress"});
   } else if(m.type === "disabled"){
     S.guardianCards.unshift({kind:"disabled"});
+  } else if(m.type === "share" || m.type === "remote" || m.type === "sos"){
+    S.guardianCards.unshift({kind:m.type});
+    if(m.type === "sos" && S.countdown === null && S.gcall === "none") S.countdown = 5;
   } else if(m.type === "resolved"){
     S.guardianCards.unshift({kind:"resolved", text:m.data.text});
   }
@@ -368,7 +373,7 @@ function submitOtp(){
   if(S.transfer !== "otp") return;
   S.transfer = "sent"; S.balance -= 480000;
   if(S.call) rlog("OTP typed before the rule could fire · transfer completed", "r");
-  else rlog("Normal payment with no call active · Kavach stays out of the way", "g");
+  else rlog("Normal payment with no call active · S.P.D stays out of the way", "g");
   render();
 }
 function pinKey(k){
@@ -380,7 +385,7 @@ function pinKey(k){
     if(p === REAL_PIN){
       S.kavachOn = false; S.pinMode = "realoff"; S.screen = "home";
       send("disabled", {});
-      rlog("Kavach turned off with the real PIN · guardians informed", "a");
+      rlog("S.P.D turned off with the real PIN · guardians informed", "a");
     } else if(p === DURESS_PIN){
       S.duress = true; S.pinMode = "fakeoff"; S.screen = "home";
       send("duress", {});
@@ -401,7 +406,7 @@ function answerGuardian(){
 function uninstall(){
   if(S.uninstalled) return;
   S.uninstalled = true; S.screen = "home";
-  rlog("Kavach uninstalled on victim's phone · heartbeats stop", "r");
+  rlog("S.P.D uninstalled on victim's phone · heartbeats stop", "r");
   render();
 }
 
@@ -411,7 +416,7 @@ const inr = (n) => "₹" + n.toLocaleString("en-IN");
 function vRender(){
   const el = $("vScreen");
   const hideCls = "";
-  let h = '<div class="sbar"><span>10:' + String(6 + Math.floor(S.min)%54).padStart(2,"0") + '</span><span>' + ((!S.uninstalled && S.kavachOn && S.pinMode !== "fakeoff") ? "KAVACH ·" : "") + '  4G ▮▮▮</span></div>';
+  let h = '<div class="sbar"><span>10:' + String(6 + Math.floor(S.min)%54).padStart(2,"0") + '</span><span>' + ((!S.uninstalled && S.kavachOn && S.pinMode !== "fakeoff") ? "S.P.D ·" : "") + '  4G ▮▮▮</span></div>';
   if(S.share) h += '<div class="share">● Sharing screen with unknown caller</div>';
   if(S.call && S.screen !== "call") h += '<button class="pip" data-a="tocall"><span class="dot"></span>On video call · Insp. Sharma · <b>' + fmt(S.min) + '</b></button>';
   h += '<div class="content">';
@@ -436,13 +441,13 @@ function vRender(){
     } else if(S.transfer === "sent" || S.transfer === "approved"){
       h += '<div class="card"><h4 class="bad">₹4,80,000 sent</h4><p>To RBI Verification A/C · XXXX4417</p></div>';
     } else if(S.transfer === "blocked"){
-      h += '<div class="card"><h4 class="ok">Transfer cancelled</h4><p>Held by your bank for 24 hours on a Kavach coercion flag. Your money is safe.</p></div>';
+      h += '<div class="card"><h4 class="ok">Transfer cancelled</h4><p>Held by your bank for 24 hours on a S.P.D coercion flag. Your money is safe.</p></div>';
     }
     h += '<button class="pbtn" data-a="home">Home</button>';
   } else if(S.screen === "pin"){
     let msg = "Enter PIN to turn off protection";
     if(S.pinMode === "wrong") msg = "Wrong PIN. Try again";
-    h += '<div class="card' + hideCls + '"><h4>Kavach Circle</h4><p>' + msg + '</p></div>' +
+    h += '<div class="card' + hideCls + '"><h4>S.P.D</h4><p>' + msg + '</p></div>' +
       '<div class="pindots' + hideCls + '">' + [0,1,2,3].map(i => '<span class="' + (i < S.pin.length ? "f" : "") + '"></span>').join("") + '</div>' +
       '<div class="keys' + hideCls + '">' + ["1","2","3","4","5","6","7","8","9","","0","del"].map(k => k === "" ? "<span></span>" : '<button data-k="' + k + '" aria-label="' + (k === "del" ? "Delete" : k) + '">' + (k === "del" ? "⌫" : k) + '</button>').join("") + '</div>' +
       '<p class="note" style="text-align:center">Demo: real PIN 2580 · duress PIN 1470</p>' +
@@ -450,31 +455,40 @@ function vRender(){
   } else {
     // home
     if(S.uninstalled){
-      h += '<div class="card"><h4>Kavach Circle was uninstalled</h4><p>The scammer told you to remove it. Your guardians will notice the silence.</p></div>';
+      h += '<div class="card"><h4>S.P.D was uninstalled</h4><p>The scammer told you to remove it. Your guardians will notice the silence.</p></div>';
     } else if(S.pinMode === "fakeoff" || S.pinMode === "realoff"){
-      h += '<div class="card' + (S.pinMode === "fakeoff" ? "" : "") + '"><h4>Protection is off</h4><p>Kavach Circle has been switched off.</p></div>';
+      h += '<div class="card' + (S.pinMode === "fakeoff" ? "" : "") + '"><h4>Protection is off</h4><p>S.P.D has been switched off.</p></div>';
     } else {
-      h += '<div class="card' + hideCls + '"><h4 class="ok">Protected by Kavach Circle</h4><p>Guardians: Rahul (son), Priya (daughter)</p>' +
+      h += '<div class="card' + hideCls + '"><h4 class="ok">Protected by S.P.D</h4><p>Guardians: Rahul (son), Priya (daughter)</p>' +
         '<div class="kv"><span>Rule engine</span>' + (S.alert ? '<b class="warn">Alert sent</b>' : '<b>Watching</b>') + '</div>' +
         '<div class="kv"><span>Data shared</span><b>On / off signals only</b></div></div>';
     }
     if(S.gcall === "connected") h += '<div class="card"><h4 class="ok">Talking to Rahul</h4><p>Your family is with you. Real police never arrest anyone on a video call.</p></div>';
+    if(!S.uninstalled) h += '<button class="pbtn red" data-a="sos">SOS: text and call my family</button>';
     h += '<div class="apps">' +
       '<button class="app" data-a="tocall"><i style="background:#1f7a4d">☎</i>Phone</button>' +
       '<button class="app" data-a="bank"><i style="background:#1b2a6b">₹</i>SafeBank</button>' +
       '<button class="app" data-a="none"><i style="background:#2c3d57">✉</i>Messages</button>' +
-      (S.uninstalled ? "" : '<button class="app" data-a="pin"><i class="' + hideCls.trim() + '" style="background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan)">K</i>Kavach</button>') +
+      (S.uninstalled ? "" : '<button class="app" data-a="pin"><i class="' + hideCls.trim() + '" style="background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan)">K</i>S.P.D</button>') +
       '</div>';
   }
   h += '</div>';
   if(S.toast) h += '<div class="toast"><b>' + S.toast.from + ' · now</b>' + S.toast.text + '</div>';
   if(S.screen === "bank" && S.transfer === "hold"){
     h += '<div class="overlay' + hideCls + '"><div class="big warn">Transfer on hold</div>' +
-      '<p>You are on a long call with an unknown caller and a large transfer has started. Kavach has asked Rahul to approve it.</p>' +
+      '<p>You are on a long call with an unknown caller and a large transfer has started. S.P.D has asked Rahul to approve it.</p>' +
       '<p style="color:var(--muted);font-size:12px">Real CBI, police or RBI officers never ask you to move money.</p></div>';
   }
+  if(S.stop){
+    const share = S.stop === "share";
+    h += '<div class="overlay" style="z-index:4;background:rgba(40,6,14,.95)"><div style="font-family:var(--mono);color:var(--red);font-size:11px;letter-spacing:.14em">S.P.D</div>' +
+      '<div class="big bad">' + (share ? "Stop sharing your screen" : "Stop. Do not share your screen") + '</div>' +
+      '<p>' + (share ? "Your screen is being shared in WhatsApp while you are on a call. The caller can see your bank apps and OTPs." : "AnyDesk lets another person see and control your phone, including your bank apps and OTPs.") + '</p>' +
+      '<p style="color:var(--muted);font-size:12px">The caller cannot see this warning. Your family has been told.</p>' +
+      '<button class="pbtn red" data-a="stopshare">' + (share ? "Stop sharing now" : "Close AnyDesk") + '</button></div>';
+  }
   if(S.gcall === "ringing"){
-    h += '<div class="overlay" style="z-index:5"><div style="font-family:var(--mono);color:var(--amber);font-size:11px;letter-spacing:.14em">KAVACH CIRCLE · FAMILY CALL</div>' +
+    h += '<div class="overlay" style="z-index:5"><div style="font-family:var(--mono);color:var(--amber);font-size:11px;letter-spacing:.14em">S.P.D · FAMILY CALL</div>' +
       '<div class="big">Rahul (son) is calling</div><p>Your family wants to talk to you now.</p>' +
       '<div class="row2"><button class="pbtn" data-a="none">Decline</button><button class="pbtn primary" data-a="answer">Answer</button></div></div>';
   }
@@ -485,14 +499,14 @@ function vRender(){
   sv.hidden = !S.share;
   if(S.share){
     let what = { call:"the video call", bank:"the SafeBank app", pin:"the home screen", home:"the home screen" }[S.screen] || "the screen";
-    $("scamViewText").innerHTML = "They see " + what + ". Every Kavach screen, overlay and alert shows as <span class=\"blk\">██████</span> because Kavach blocks screen capture." + (S.pinMode === "fakeoff" ? " After the duress PIN they also see <b>“Protection is off”</b>." : "");
+    $("scamViewText").innerHTML = "They see " + what + ". Every S.P.D warning and alert shows as <span class=\"blk\">██████</span> because S.P.D blocks screen capture." + (S.pinMode === "fakeoff" ? " After the duress PIN they also see <b>“Protection is off”</b>." : "");
   }
 }
 
 /* ---------------- render guardian ---------------- */
 function gRender(){
   const el = $("gScreen");
-  let h = '<div class="sbar"><span>10:' + String(6 + Math.floor(S.min)%54).padStart(2,"0") + '</span><span>KAVACH GUARDIAN</span></div><div class="content">';
+  let h = '<div class="sbar"><span>10:' + String(6 + Math.floor(S.min)%54).padStart(2,"0") + '</span><span>S.P.D GUARDIAN</span></div><div class="content">';
   const silent = S.guardianCards.some(c => c.kind === "silent");
   h += '<div class="card"><h4>Watching over Mom</h4>' +
     '<div class="kv"><span>Mom\'s phone</span>' + (silent ? '<b class="bad">Silent</b>' : (S.call ? '<b class="warn">On a call · ' + fmt(S.min) + '</b>' : '<b class="ok">Protected</b>')) + '</div>' +
@@ -506,19 +520,26 @@ function gRender(){
       h += '<div style="display:grid;gap:8px;margin-top:8px"><button class="pbtn primary" data-g="call"' + (S.gcall !== "none" ? " disabled" : "") + '>' + (S.gcall === "none" ? "Call Mom now" : (S.gcall === "ringing" ? "Ringing Mom…" : "Connected to Mom")) + '</button>';
       if(S.transfer === "hold") h += '<div class="row2"><button class="pbtn" data-g="approve">Approve</button><button class="pbtn red" data-g="block">Block transfer</button></div>';
       h += '</div></div>';
+    } else if(c.kind === "share" || c.kind === "remote" || c.kind === "sos"){
+      const T = {share:["SCREEN SHARE ALERT","Mom is sharing her phone screen in WhatsApp during a call. Scammers use this to watch bank apps and OTPs."],
+                 remote:["REMOTE-CONTROL APP OPENED","Mom opened AnyDesk during a call. Scammers use it to control a phone and empty the bank account."],
+                 sos:["SOS FROM MOM","Mom pressed the help button and may be on a scam call right now."]}[c.kind];
+      h += '<div class="card alert red"><h4>' + T[0] + '</h4><p style="color:var(--ink)">' + T[1] + '</p>';
+      if(i === 0 && S.countdown !== null && S.gcall === "none") h += '<p class="countdown">Calling Mom automatically in ' + Math.ceil(S.countdown) + ' s</p>';
+      h += '<button class="pbtn primary" style="margin-top:8px" data-g="call"' + (S.gcall !== "none" ? " disabled" : "") + '>Call Mom now</button></div>';
     } else if(c.kind === "duress"){
-      h += '<div class="card alert red"><h4>DURESS PIN USED</h4><p style="color:var(--ink)">Mom entered her duress PIN. Someone is forcing her to switch Kavach off. Protection is still running.</p>' +
+      h += '<div class="card alert red"><h4>DURESS PIN USED</h4><p style="color:var(--ink)">Mom entered her duress PIN. Someone is forcing her to switch S.P.D off. Protection is still running.</p>' +
         '<button class="pbtn primary" style="margin-top:8px" data-g="call"' + (S.gcall !== "none" ? " disabled" : "") + '>Call Mom now</button></div>';
     } else if(c.kind === "silent"){
-      h += '<div class="card alert red"><h4>KAVACH WENT SILENT</h4><p style="color:var(--ink)">Mom\'s phone stopped sending heartbeats. The app may have been uninstalled or force-stopped.</p>' +
+      h += '<div class="card alert red"><h4>S.P.D WENT SILENT</h4><p style="color:var(--ink)">Mom\'s phone stopped sending heartbeats. The app may have been uninstalled or force-stopped.</p>' +
         '<button class="pbtn primary" style="margin-top:8px" data-g="call"' + (S.gcall !== "none" ? " disabled" : "") + '>Call Mom now</button></div>';
     } else if(c.kind === "disabled"){
-      h += '<div class="card"><h4 class="warn">Kavach turned off</h4><p>Mom switched protection off with her real PIN.</p></div>';
+      h += '<div class="card"><h4 class="warn">S.P.D turned off</h4><p>Mom switched protection off with her real PIN.</p></div>';
     } else if(c.kind === "resolved"){
       h += '<div class="card"><h4 class="ok">Update</h4><p>' + c.text + '</p></div>';
     }
   });
-  if(!S.guardianCards.length) h += '<p class="note" style="text-align:center;margin-top:20px">No alerts. You will only hear from Kavach if Mom looks to be in trouble.</p>';
+  if(!S.guardianCards.length) h += '<p class="note" style="text-align:center;margin-top:20px">No alerts. You will only hear from S.P.D if Mom looks to be in trouble.</p>';
   h += '</div>';
   el.innerHTML = h;
 }
@@ -526,6 +547,8 @@ function gRender(){
 /* ---------------- render center ---------------- */
 function render(){
   const met = [S.c1, S.c2 && S.call, S.c3 && S.call];
+  $("c4").classList.toggle("met", S.shareSeen);
+  $("c4").querySelector(".st").textContent = S.shareSeen ? "ALERT SENT" : "WAITING";
   ["c1","c2","c3"].forEach((id, i) => {
     const box = $(id); box.classList.toggle("met", !!met[i]);
     box.querySelector(".st").textContent = met[i] ? "MET" : "WAITING";
@@ -536,14 +559,14 @@ function render(){
   $("meterTxt").textContent = n + " of 3 conditions" + (S.alert ? " · ALERT SENT" : "");
   $("clock").textContent = S.call ? "Call time " + fmt(S.min) : "No active call";
   const vk = $("vKav");
-  if(S.uninstalled){ vk.textContent = "KAVACH REMOVED"; vk.className = "bad"; }
-  else if(S.pinMode === "realoff"){ vk.textContent = "KAVACH OFF"; vk.className = "warn"; }
+  if(S.uninstalled){ vk.textContent = "S.P.D REMOVED"; vk.className = "bad"; }
+  else if(S.pinMode === "realoff"){ vk.textContent = "S.P.D OFF"; vk.className = "warn"; }
   else if(S.duress){ vk.textContent = "DURESS · STILL ON"; vk.className = "bad"; }
-  else { vk.textContent = "KAVACH ON"; vk.className = "ok"; }
+  else { vk.textContent = "S.P.D ON"; vk.className = "ok"; }
   const silent = S.guardianCards.some(c => c.kind === "silent");
   $("gHb").textContent = silent ? "HEARTBEAT LOST" : "LINKED"; $("gHb").className = silent ? "bad" : "ok";
   $("bCall").disabled = S.call; $("bSkip").disabled = !S.call || S.min >= 30;
-  $("bShare").disabled = !S.call || S.share; $("bUninstall").disabled = S.uninstalled;
+  $("bShare").disabled = !S.call || S.share; $("bRemote").disabled = !S.call || S.stop !== null; $("bUninstall").disabled = S.uninstalled;
   vRender(); gRender();
 }
 
@@ -560,6 +583,8 @@ document.addEventListener("click", (e) => {
     else if(act === "home"){ S.screen = "home"; render(); }
     else if(act === "pin"){ S.screen = "pin"; S.pin = ""; if(S.pinMode === "wrong") S.pinMode = "off"; render(); }
     else if(act === "answer") answerGuardian();
+    else if(act === "stopshare") stopShare();
+    else if(act === "sos") sos();
   } else if(k){ pinKey(k.dataset.k); }
   else if(g){
     if(g.dataset.g === "call") gCall();
@@ -569,7 +594,37 @@ document.addEventListener("click", (e) => {
 });
 $("bCall").onclick = startCall;
 $("bSkip").onclick = () => { S.min = 30; rlog("Skipped ahead: call has run 30 minutes", "c"); tick(); };
-$("bShare").onclick = () => { S.share = true; rlog("Scammer: \"Share your screen so I can guide you\"", "c"); render(); };
+function protectedNow(){ return S.kavachOn && !S.uninstalled; }
+function startShare(){
+  S.share = true; rlog("Scammer: \"Share your screen so I can guide you\"", "c");
+  if(protectedNow()){
+    S.shareSeen = true; S.stop = "share";
+    rlog("Signal: WhatsApp is sharing the screen during a call · instant alert", "a");
+    send("share", {});
+  }
+  render();
+}
+function startRemote(){
+  rlog("Scammer: \"Install AnyDesk so I can help you\"", "c");
+  if(protectedNow()){
+    S.shareSeen = true; S.stop = "remote";
+    rlog("Signal: AnyDesk opened during a call · instant alert", "a");
+    send("remote", {});
+  }
+  render();
+}
+function stopShare(){
+  if(S.stop === "share"){ S.share = false; rlog("Sunita stopped sharing her screen", "g"); }
+  else rlog("Sunita closed AnyDesk", "g");
+  S.stop = null; render();
+}
+function sos(){
+  if(!protectedNow()) return;
+  rlog("SOS pressed · every guardian texted, Rahul called", "a");
+  send("sos", {}); render();
+}
+$("bShare").onclick = startShare;
+$("bRemote").onclick = startRemote;
 $("bUninstall").onclick = uninstall;
 $("bReset").onclick = () => { S = fresh(); C.used.clear(); rlog("Scenario reset", "c"); render(); };
 $("bReplay").onclick = () => { if(C.last){ rlog("Attacker replays a captured alert request…", "a"); relayReceive(C.last, "Replayed request"); } };
@@ -587,7 +642,8 @@ $("bAuto").onclick = async () => {
   const alive = () => run === S.runId;
   rlog("Running the full scenario…", "c");
   startCall(); await wait(3000); if(!alive()) return;
-  S.share = true; render(); await wait(1800); if(!alive()) return;
+  startShare(); await wait(3200); if(!alive()) return;
+  stopShare(); await wait(1400); if(!alive()) return;
   S.min = 30; render(); await wait(2200); if(!alive()) return;
   openBank(); await wait(2000); if(!alive()) return;
   sendMoney(); await wait(4500); if(!alive()) return;

@@ -1,21 +1,23 @@
-# Kavach Circle: Android app
+# S.P.D: Android app
 
 Team Power Rangers · HackRush 2026 · Cybersecurity track
 
-Kavach Circle is a real Android app for the person you want to protect (for example, Mom). It watches for the pattern of a digital arrest scam: a long call, a payment app opened during that call, and a bank OTP arriving. When it sees the pattern, it puts a pause screen on top of Paytm, Google Pay, PhonePe and other payment apps, and texts her guardians.
+S.P.D is a real Android app for the person you want to protect (for example, Mom). It watches for the pattern of a digital arrest scam: a long call, a payment app opened during that call, and a bank OTP arriving. When it sees the pattern, it puts a pause screen on top of Paytm, Google Pay, PhonePe and other payment apps, and texts her guardians.
 
 **Guardians don't need the app.** You add each guardian by name and number. They get plain, readable SMS alerts on any phone, and can simply reply **YES** or **NO** by SMS to approve or block a payment (Hindi *haan* / *nahi* work too). Replies are accepted only from a saved guardian's number, and the guardian gets a confirmation SMS back. A guardian can also install the app to get full-screen alerts, automatic calls and one-tap approve/block.
 
 **Also built in:**
 
-- **Remote-access shield.** If AnyDesk, TeamViewer, RustDesk or another screen-control app is opened during any call, Kavach shows a stop screen and texts the guardians at once.
+- **Remote-access shield.** If AnyDesk, TeamViewer, RustDesk or another screen-control app is opened during any call, S.P.D shows a stop screen and texts the guardians at once.
 - **One-tap SOS.** A red button on the home screen texts every guardian and phones the first one.
 
 - **Account and PIN login.** The app opens with a create-account flow (name, number, role, PIN). After that it asks for the PIN each time it is opened, and locks again after 5 minutes away. The account lives only on the phone.
 - **Two dashboards.** The protected person and the guardian each get their own home page, menu and profile. The guardian's page keeps a history of alerts.
-- **Screen-share watch.** With notification access allowed, Kavach notices when WhatsApp, Google Meet, Zoom, Telegram, Teams, Skype or Signal starts sharing the screen during a call, shows a stop screen and texts the guardians. It works from the wording of the app's ongoing call notification, so test it on your own phones.
+- **Screen-share watch.** With notification access allowed, S.P.D notices when WhatsApp, Google Meet, Zoom, Telegram, Teams, Skype or Signal starts sharing the screen during a call, shows a stop screen and texts the guardians. It works from the wording of the app's ongoing call notification, so test it on your own phones.
 
-Backups: `backup-v1` is the version before the 3D website; `backup-v2` is the version before the login page and new dashboards.
+The app's package id (`com.kavachcircle.app`), the repo name and the old `KavachCircle.apk` link are unchanged, so existing installs update in place; the new download name is `SPD.apk`.
+
+Backups: `backup-v3` is the version before the rename to S.P.D; `backup-v1` is the version before the 3D website; `backup-v2` is the version before the login page and new dashboards.
 
 ---
 
@@ -27,11 +29,11 @@ This workspace couldn't build the APK itself, so GitHub builds it for you in the
 2. Click **+ › New repository**. Name it `kavach-circle`, make it **Public**, and click **Create repository**.
 3. On the new repo page, click **uploading an existing file**. Unzip this project on your laptop and drag **everything inside the `kavach-android` folder** into the page. Then click **Commit changes**.
    - **Check that the `.github` folder was uploaded.** Mac and Windows hide folders that start with a dot, so they often get skipped. If yours is missing: click **Add file › Create new file**, type `.github/workflows/build-apk.yml` as the name, paste in the contents of that file from the zip, and commit.
-4. Open the **Actions** tab. A run called **Build Kavach Circle APK** starts by itself. Wait about 5 minutes for the green tick.
+4. Open the **Actions** tab. A run called **Build S.P.D APK** starts by itself. Wait about 5 minutes for the green tick.
 5. Your permanent download link is:
 
    ```
-   https://github.com/YOUR-USERNAME/kavach-circle/releases/latest/download/KavachCircle.apk
+   https://github.com/YOUR-USERNAME/kavach-circle/releases/latest/download/SPD.apk
    ```
 
    Open it on both phones. Every new commit rebuilds the app at the same link.
@@ -64,11 +66,11 @@ This workspace couldn't build the APK itself, so GitHub builds it for you in the
 
 **Optional: on a guardian's phone**
 
-Install the same APK, choose **I'm a guardian**, and enter the protected person's name and number. Their Kavach SMS will then open full screen, call them automatically after 15 seconds, and offer Approve and Block buttons.
+Install the same APK, choose **I'm a guardian**, and enter the protected person's name and number. Their S.P.D SMS will then open full screen, call them automatically after 15 seconds, and offer Approve and Block buttons.
 
-> **Xiaomi, Redmi, POCO, Vivo, Oppo, Realme or OnePlus phone?** Also turn on **Autostart** for Kavach Circle (Settings › Apps › Kavach Circle › Autostart). Without it, these phones block SMS replies and OTPs from reaching the app while it is closed.
+> **Xiaomi, Redmi, POCO, Vivo, Oppo, Realme or OnePlus phone?** Also turn on **Autostart** for S.P.D (Settings › Apps › S.P.D › Autostart). Without it, these phones block SMS replies and OTPs from reaching the app while it is closed.
 >
-> If Android says **"Restricted setting"** while you are granting a permission, go to Settings › Apps › Kavach Circle › ⋮ (top right) › **Allow restricted settings**, then try again. Android does this for apps installed from outside the Play Store.
+> If Android says **"Restricted setting"** while you are granting a permission, go to Settings › Apps › S.P.D › ⋮ (top right) › **Allow restricted settings**, then try again. Android does this for apps installed from outside the Play Store.
 
 ---
 
@@ -77,12 +79,12 @@ Install the same APK, choose **I'm a guardian**, and enter the protected person'
 **Demo mode** is on by default. In demo mode the pause screen appears after a **1-minute** call instead of 30.
 
 1. From a third phone, video-call the protected phone on WhatsApp. Play the "CBI officer".
-2. After 1 minute, the caller says "open Google Pay". When the protected phone opens Google Pay, **Kavach's pause screen covers it**.
+2. After 1 minute, the caller says "open Google Pay". When the protected phone opens Google Pay, **S.P.D's pause screen covers it**.
 3. Tap **Ask my family to approve this payment**. The guardian gets an SMS with a code. They reply **NO** (or tap Block in the guardian app). The pause screen comes to the front on the protected phone with *"Rahul replied NO. Do not pay."*
-4. Send the protected phone an SMS such as `Your OTP is 482913 for UPI transfer`. Now all three signals are met, so the guardian gets a **Kavach Circle ALERT** SMS. With the guardian app, it also opens full screen and calls the protected phone.
+4. Send the protected phone an SMS such as `Your OTP is 482913 for UPI transfer`. Now all three signals are met, so the guardian gets a **S.P.D ALERT** SMS. With the guardian app, it also opens full screen and calls the protected phone.
 5. **Duress PIN:** tap **Turn off protection** and enter the duress PIN. The phone looks switched off, but the guardian gets an **URGENT** SMS.
-6. **Screen share:** start a screen share to the caller. Kavach's screens show as black to the caller.
-7. **Tamper alarm:** go to Settings › Security › Device admin apps and untick Kavach Circle. The guardian gets an SMS straight away.
+6. **Screen share:** start a screen share to the caller. S.P.D's screens show as black to the caller.
+7. **Tamper alarm:** go to Settings › Security › Device admin apps and untick S.P.D. The guardian gets an SMS straight away.
 
 Turn **Demo mode** off for real use. Then the call threshold is 30 minutes, the pause before "continue without approval" is 2 minutes, and any guardian added after the first becomes active only after 24 hours, with the existing guardians told by SMS.
 

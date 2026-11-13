@@ -48,8 +48,8 @@ class AlertActivity : AppCompatActivity() {
             "HELP" -> "They need you now"
             "APPROVE_REQ" -> "Payment approval needed"
             "DURESS" -> "DURESS PIN USED"
-            "TAMPER" -> "Kavach is being removed"
-            else -> "Kavach Circle"
+            "TAMPER" -> "S.P.D is being removed"
+            else -> "S.P.D"
         }
     }
 
@@ -112,7 +112,7 @@ class AlertActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             setPadding(Ui.dp(this@AlertActivity, 22), Ui.dp(this@AlertActivity, 36), Ui.dp(this@AlertActivity, 22), Ui.dp(this@AlertActivity, 28))
         }
-        root.addView(Ui.tag(this, "KAVACH CIRCLE · GUARDIAN"))
+        root.addView(Ui.tag(this, "S.P.D · GUARDIAN"))
         root.addView(Ui.title(this, title, color))
         root.addView(Ui.text(this, body, 16f))
 

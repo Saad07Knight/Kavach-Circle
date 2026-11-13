@@ -77,7 +77,7 @@ class InterventionActivity : AppCompatActivity() {
         val badge = Ui.ring(this, if (remote) Ui.RED else Ui.AMBER, 76)
         root.addView(badge)
         pulse = Ui.pulse(badge)
-        root.addView(Ui.tag(this, "KAVACH CIRCLE"))
+        root.addView(Ui.tag(this, "S.P.D"))
         if (kind == 2) {
             root.addView(Ui.title(this, "Stop sharing your screen", Ui.RED))
             root.addView(Ui.text(this,
@@ -190,7 +190,7 @@ class InterventionActivity : AppCompatActivity() {
 
     private fun askApproval() {
         if (Prefs.activeGuardians(this).isEmpty()) {
-            status.text = "Add a guardian in Kavach Circle first."
+            status.text = "Add a guardian in S.P.D first."
             status.setTextColor(Ui.RED)
             return
         }
