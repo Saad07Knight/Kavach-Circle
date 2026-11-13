@@ -74,6 +74,16 @@
                 android:value="Detects the call-plus-payment pattern of phone scams and alerts family" />
         </service>
 
+        <service
+            android:name=".ShareWatch"
+            android:exported="true"
+            android:label="Kavach Circle screen-share watch"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".SmsReceiver"
             android:exported="true"

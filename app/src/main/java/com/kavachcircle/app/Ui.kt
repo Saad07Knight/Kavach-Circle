@@ -5,7 +5,15 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.text.InputType
 import android.view.Gravity
+import android.animation.Animator
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
+import android.animation.ValueAnimator
+import android.annotation.SuppressLint
+import android.view.MotionEvent
 import android.view.View
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.LinearInterpolator
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -139,7 +147,7 @@ object Ui {
     }
 
     /** Round status badge with the shield inside. */
-    fun ring(c: Context, color: Int, size: Int = 68): FrameLayout = FrameLayout(c).apply {
+    fun ring(c: Context, color: Int, size: Int = 68, res: Int = R.drawable.ic_stat): FrameLayout = FrameLayout(c).apply {
         background = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
             setColor(PANEL2)
@@ -147,7 +155,7 @@ object Ui {
         }
         layoutParams = LinearLayout.LayoutParams(dp(c, size), dp(c, size)).apply { marginEnd = dp(c, 14) }
         addView(ImageView(c).apply {
-            setImageResource(R.drawable.ic_stat)
+            setImageResource(res)
             setColorFilter(color)
             layoutParams = FrameLayout.LayoutParams(dp(c, size / 2), dp(c, size / 2), Gravity.CENTER)
         })
@@ -177,6 +185,126 @@ object Ui {
         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         isClickable = true
         setOnClickListener { onClick() }
+    }
+
+    fun oval(c: Context, fill: Int, stroke: Int): GradientDrawable = GradientDrawable().apply {
+        shape = GradientDrawable.OVAL
+        setColor(fill)
+        setStroke(dp(c, 1), stroke)
+    }
+
+    /** Round icon button for the top bar. */
+    fun iconBtn(c: Context, res: Int, onClick: (View) -> Unit): ImageView = ImageView(c).apply {
+        setImageResource(res)
+        setColorFilter(INK)
+        background = oval(c, PANEL, LINE)
+        val pad = dp(c, 11)
+        setPadding(pad, pad, pad, pad)
+        layoutParams = LinearLayout.LayoutParams(dp(c, 44), dp(c, 44)).apply { marginEnd = dp(c, 12) }
+        setOnClickListener { onClick(it) }
+    }
+
+    /** Keypad key for the PIN screen. */
+    fun key(c: Context, s: String, onClick: () -> Unit): TextView = TextView(c).apply {
+        text = s
+        textSize = 24f
+        setTextColor(INK)
+        gravity = Gravity.CENTER
+        background = oval(c, PANEL, LINE)
+        layoutParams = LinearLayout.LayoutParams(dp(c, 68), dp(c, 68)).apply {
+            marginStart = dp(c, 10)
+            marginEnd = dp(c, 10)
+        }
+        isClickable = true
+        setOnClickListener {
+            animate().scaleX(0.88f).scaleY(0.88f).setDuration(60).withEndAction {
+                animate().scaleX(1f).scaleY(1f).setDuration(90).start()
+            }.start()
+            onClick()
+        }
+    }
+
+    /** Dashboard tile: tilts in 3D under the finger and flips when tapped. */
+    fun tile(c: Context, res: Int, title: String, sub: String, color: Int, onClick: () -> Unit): LinearLayout =
+        LinearLayout(c).apply {
+            orientation = LinearLayout.VERTICAL
+            background = round(c, PANEL, LINE)
+            setPadding(dp(c, 14), dp(c, 14), dp(c, 14), dp(c, 14))
+            minimumHeight = dp(c, 132)
+            addView(ring(c, color, 44, res))
+            addView(text(c, title, 15f, INK, true).apply { setPadding(0, dp(c, 8), 0, 0) })
+            addView(text(c, sub, 12f, MUTED))
+            tilt(this)
+            isClickable = true
+            setOnClickListener {
+                animate().rotationY(90f).setDuration(140).withEndAction {
+                    rotationY = 0f
+                    onClick()
+                }.start()
+            }
+        }
+
+    private fun depth(v: View) {
+        v.cameraDistance = 9000f * v.resources.displayMetrics.density
+    }
+
+    /** Views rise into place with a small 3D swing, one after another. */
+    fun enter(v: View, index: Int) {
+        depth(v)
+        v.alpha = 0f
+        v.translationY = dp(v.context, 30).toFloat()
+        v.rotationX = -20f
+        v.animate().alpha(1f).translationY(0f).rotationX(0f)
+            .setStartDelay(45L * index.coerceAtMost(12)).setDuration(380)
+            .setInterpolator(DecelerateInterpolator()).start()
+    }
+
+    /** Slow breathing pulse for status badges. Cancel the returned animator when the view goes away. */
+    fun pulse(v: View): Animator = ObjectAnimator.ofPropertyValuesHolder(
+        v,
+        PropertyValuesHolder.ofFloat("scaleX", 1f, 1.08f),
+        PropertyValuesHolder.ofFloat("scaleY", 1f, 1.08f)
+    ).apply {
+        duration = 1100
+        repeatCount = ValueAnimator.INFINITE
+        repeatMode = ValueAnimator.REVERSE
+        start()
+    }
+
+    /** Continuous 3D spin around the vertical axis. */
+    fun spin(v: View): Animator {
+        depth(v)
+        return ObjectAnimator.ofFloat(v, "rotationY", 0f, 360f).apply {
+            duration = 5200
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = LinearInterpolator()
+            start()
+        }
+    }
+
+    fun shake(v: View) {
+        ObjectAnimator.ofFloat(v, "translationX", 0f, 26f, -26f, 18f, -18f, 8f, 0f).setDuration(380).start()
+    }
+
+    /** The view leans toward the finger, like the cards on the website. */
+    @SuppressLint("ClickableViewAccessibility")
+    fun tilt(v: View) {
+        depth(v)
+        v.setOnTouchListener { view, e ->
+            when (e.actionMasked) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                    val w = view.width.coerceAtLeast(1).toFloat()
+                    val h = view.height.coerceAtLeast(1).toFloat()
+                    view.rotationY = (e.x / w - 0.5f) * 18f
+                    view.rotationX = (0.5f - e.y / h) * 18f
+                    view.scaleX = 0.97f
+                    view.scaleY = 0.97f
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+                    view.animate().rotationX(0f).rotationY(0f).scaleX(1f).scaleY(1f).setDuration(220).start()
+            }
+            false
+        }
     }
 
     val PIN_INPUT = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD

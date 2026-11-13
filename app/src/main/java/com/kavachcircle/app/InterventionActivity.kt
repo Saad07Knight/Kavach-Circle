@@ -28,10 +28,10 @@ class InterventionActivity : AppCompatActivity() {
     companion object {
         @Volatile var visible = false
 
-        fun launch(c: Context, app: String, remote: Boolean = false) {
+        fun launch(c: Context, app: String, kind: Int = 0) {
             val i = Intent(c, InterventionActivity::class.java)
                 .putExtra("app", app)
-                .putExtra("remote", remote)
+                .putExtra("kind", kind)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             // "Display over other apps" also lets us open this screen from the background.
             if (Settings.canDrawOverlays(c)) {
@@ -40,7 +40,7 @@ class InterventionActivity : AppCompatActivity() {
                     return
                 } catch (e: Exception) { }
             }
-            Notify.fullScreen(c, i, if (remote) "Stop. Do not share your screen" else "Pause before you pay",
+            Notify.fullScreen(c, i, if (kind != 0) "Stop. Do not share your screen" else "Pause before you pay",
                 "You are on a call and opened $app. Tap to read this first.")
         }
     }
@@ -52,6 +52,8 @@ class InterventionActivity : AppCompatActivity() {
     private lateinit var askBtn: Button
     private var app = "a payment app"
     private var remote = false
+    private var kind = 0
+    private var pulse: android.animation.Animator? = null
 
     private val refresh = object : Runnable {
         override fun run() {
@@ -64,16 +66,26 @@ class InterventionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         app = intent.getStringExtra("app") ?: app
-        remote = intent.getBooleanExtra("remote", false)
+        kind = intent.getIntExtra("kind", 0)
+        remote = kind != 0
         openedAt = System.currentTimeMillis()
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(Ui.dp(this@InterventionActivity, 22), Ui.dp(this@InterventionActivity, 36), Ui.dp(this@InterventionActivity, 22), Ui.dp(this@InterventionActivity, 28))
         }
-        root.addView(Ui.ring(this, if (remote) Ui.RED else Ui.AMBER, 76))
+        val badge = Ui.ring(this, if (remote) Ui.RED else Ui.AMBER, 76)
+        root.addView(badge)
+        pulse = Ui.pulse(badge)
         root.addView(Ui.tag(this, "KAVACH CIRCLE"))
-        if (remote) {
+        if (kind == 2) {
+            root.addView(Ui.title(this, "Stop sharing your screen", Ui.RED))
+            root.addView(Ui.text(this,
+                "Your screen is being shared in $app while you are on a call.\n\n" +
+                    "The caller can see everything on your phone, including your bank apps, passwords and OTPs. " +
+                    "No bank or police officer needs to see your screen. Stop sharing now. " +
+                    "The caller cannot see this warning, and your family has been told.", 16f))
+        } else if (remote) {
             root.addView(Ui.title(this, "Stop. Do not share your screen", Ui.RED))
             root.addView(Ui.text(this,
                 "You are on a call and just opened $app.\n\n" +
@@ -108,10 +120,15 @@ class InterventionActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         // A different warning (payment vs screen-sharing) replaces the one on screen.
-        if (intent.getBooleanExtra("remote", false) != remote) {
+        if (intent.getIntExtra("kind", 0) != kind) {
             setIntent(intent)
             recreate()
         }
+    }
+
+    override fun onDestroy() {
+        pulse?.cancel()
+        super.onDestroy()
     }
 
     override fun onResume() {

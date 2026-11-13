@@ -18,6 +18,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.provider.Telephony
+import android.service.notification.NotificationListenerService
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -167,5 +168,61 @@ class AdminReceiver : DeviceAdminReceiver() {
     override fun onDisableRequested(context: Context, intent: Intent): CharSequence {
         if (Prefs.role(context) == Prefs.ROLE_VICTIM) Messenger.toGuardians(context, "TAMPER")
         return "Kavach Circle will tell your family that protection is being removed."
+    }
+}
+
+/**
+ * Screen-share watch. Android gives no direct way to ask "is another app sharing my screen?", but
+ * calling apps must show an ongoing notification while they do. With notification access, Kavach
+ * looks only at ongoing notifications from calling apps and the system, and only for screen-share
+ * wording. Chat messages are never read.
+ */
+class ShareWatch : NotificationListenerService() {
+    override fun onListenerConnected() { instance = this }
+    override fun onListenerDisconnected() { instance = null }
+
+    companion object {
+        @Volatile private var instance: ShareWatch? = null
+
+        private val APPS = mapOf(
+            "com.whatsapp" to "WhatsApp",
+            "com.whatsapp.w4b" to "WhatsApp Business",
+            "org.telegram.messenger" to "Telegram",
+            "com.google.android.apps.tachyon" to "Google Meet",
+            "com.google.android.apps.meetings" to "Google Meet",
+            "us.zoom.videomeetings" to "Zoom",
+            "com.microsoft.teams" to "Microsoft Teams",
+            "com.skype.raider" to "Skype",
+            "org.thoughtcrime.securesms" to "Signal",
+            "com.android.systemui" to "this phone",
+            "android" to "this phone"
+        )
+        private val WORDS = Regex(
+            "screen\\s*-?\\s*(shar|cast|record|mirror)|(shar|cast|present|record|mirror)\\w*\\s+(your |the |entire |my )?screen"
+        )
+
+        /** Name of the app that is sharing the screen right now, or null. */
+        fun sharing(): String? {
+            val svc = instance ?: return null
+            try {
+                val list = svc.activeNotifications ?: return null
+                for (sbn in list) {
+                    val label = APPS[sbn.packageName] ?: continue
+                    if (!sbn.isOngoing) continue
+                    val ex = sbn.notification.extras
+                    val text = listOf(
+                        ex.getCharSequence(Notification.EXTRA_TITLE),
+                        ex.getCharSequence(Notification.EXTRA_TEXT),
+                        ex.getCharSequence(Notification.EXTRA_SUB_TEXT),
+                        sbn.notification.tickerText
+                    ).joinToString(" ") { it?.toString() ?: "" }.lowercase()
+                    val hindi = text.contains("स्क्रीन") && (text.contains("शेयर") || text.contains("साझा"))
+                    if (WORDS.containsMatchIn(text) || hindi) return label
+                }
+            } catch (e: Exception) {
+                Log.w("Kavach", "screen-share check failed", e)
+            }
+            return null
+        }
     }
 }
