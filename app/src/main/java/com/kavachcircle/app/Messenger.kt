@@ -41,6 +41,8 @@ object Messenger {
             "ALERT" -> "$PREFIX ALERT: $n has been on a call for $mins min, opened $app and just got a bank OTP. This looks like a digital arrest scam. Call $n now on $ph."
             "HELP" -> "$PREFIX: $n needs you now. They tapped \"Call my family\" during a $mins-min call while opening $app. Call $ph."
             "APPROVE_REQ" -> "$PREFIX: $n wants to pay using $app during a $mins-min call. Reply YES to allow or NO to block (code $code). If unsure, call $ph first."
+            "REMOTE" -> "$PREFIX ALERT: $n opened $app, a screen-sharing app, during a call. Scammers use these apps to control a phone and empty the bank account. Call $n now on $ph."
+            "SOS" -> "$PREFIX SOS: $n pressed the help button and may be on a scam call right now. Call $ph now."
             "DURESS" -> "$PREFIX URGENT: $n entered the duress PIN. Someone may be forcing them to switch off protection. Call $ph now."
             "TAMPER" -> "$PREFIX: someone is removing Kavach Circle from $n's phone. Call $ph."
             "DISABLED" -> "$PREFIX: $n turned protection off with their PIN."
@@ -93,7 +95,7 @@ object Messenger {
         val type = when {
             body.contains("URGENT") -> "DURESS"
             body.contains("ALERT:") -> "ALERT"
-            body.contains("needs you now") -> "HELP"
+            body.contains("needs you now") || body.contains("SOS:") -> "HELP"
             body.contains("Reply YES") -> "APPROVE_REQ"
             body.contains("removing Kavach") -> "TAMPER"
             else -> "INFO"

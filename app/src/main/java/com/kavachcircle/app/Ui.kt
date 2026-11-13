@@ -5,7 +5,10 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.text.InputType
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -84,6 +87,96 @@ object Ui {
         background = round(c, PANEL2, LINE)
         setPadding(dp(c, 12), dp(c, 10), dp(c, 12), dp(c, 10))
         layoutParams = lp(c, 8)
+    }
+
+    fun pill(c: Context, fill: Int, stroke: Int): GradientDrawable = GradientDrawable().apply {
+        setColor(fill)
+        cornerRadius = dp(c, 999).toFloat()
+        setStroke(dp(c, 1), stroke)
+    }
+
+    /** Horizontal row, vertically centred. */
+    fun row(c: Context, top: Int = 8): LinearLayout = LinearLayout(c).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        layoutParams = lp(c, top)
+    }
+
+    /** Vertical column that takes the remaining width inside a row. */
+    fun col(c: Context): LinearLayout = LinearLayout(c).apply {
+        orientation = LinearLayout.VERTICAL
+        layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+    }
+
+    /** Signal chip: grey while waiting, green once the signal is seen. */
+    fun chip(c: Context, s: String): TextView = TextView(c).apply {
+        text = s
+        textSize = 12f
+        gravity = Gravity.CENTER
+        setPadding(dp(c, 4), dp(c, 7), dp(c, 4), dp(c, 7))
+        layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+            marginEnd = dp(c, 6)
+        }
+        setChip(this, false)
+    }
+
+    fun setChip(t: TextView, on: Boolean) {
+        t.setTextColor(if (on) DARK else MUTED)
+        t.background = pill(t.context, if (on) GREEN else PANEL2, if (on) GREEN else LINE)
+    }
+
+    fun avatar(c: Context, letter: String, color: Int): TextView = TextView(c).apply {
+        text = letter
+        textSize = 16f
+        setTextColor(DARK)
+        setTypeface(typeface, Typeface.BOLD)
+        gravity = Gravity.CENTER
+        background = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(color)
+        }
+        layoutParams = LinearLayout.LayoutParams(dp(c, 40), dp(c, 40)).apply { marginEnd = dp(c, 12) }
+    }
+
+    /** Round status badge with the shield inside. */
+    fun ring(c: Context, color: Int, size: Int = 68): FrameLayout = FrameLayout(c).apply {
+        background = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(PANEL2)
+            setStroke(dp(c, 3), color)
+        }
+        layoutParams = LinearLayout.LayoutParams(dp(c, size), dp(c, size)).apply { marginEnd = dp(c, 14) }
+        addView(ImageView(c).apply {
+            setImageResource(R.drawable.ic_stat)
+            setColorFilter(color)
+            layoutParams = FrameLayout.LayoutParams(dp(c, size / 2), dp(c, size / 2), Gravity.CENTER)
+        })
+    }
+
+    /** Thin progress bar. */
+    fun bar(c: Context, fraction: Float, color: Int): LinearLayout = LinearLayout(c).apply {
+        orientation = LinearLayout.HORIZONTAL
+        background = pill(c, PANEL2, LINE)
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(c, 8)).apply { topMargin = dp(c, 10) }
+        val f = fraction.coerceIn(0f, 1f)
+        addView(View(c).apply {
+            background = pill(c, color, color)
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, f)
+        })
+        addView(View(c).apply {
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f - f)
+        })
+    }
+
+    fun small(c: Context, s: String, fg: Int = MUTED, onClick: () -> Unit): TextView = TextView(c).apply {
+        text = s
+        textSize = 13f
+        setTextColor(fg)
+        background = pill(c, PANEL2, LINE)
+        setPadding(dp(c, 12), dp(c, 7), dp(c, 12), dp(c, 7))
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        isClickable = true
+        setOnClickListener { onClick() }
     }
 
     val PIN_INPUT = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD

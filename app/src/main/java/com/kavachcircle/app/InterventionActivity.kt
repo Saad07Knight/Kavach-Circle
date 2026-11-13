@@ -28,9 +28,10 @@ class InterventionActivity : AppCompatActivity() {
     companion object {
         @Volatile var visible = false
 
-        fun launch(c: Context, app: String) {
+        fun launch(c: Context, app: String, remote: Boolean = false) {
             val i = Intent(c, InterventionActivity::class.java)
                 .putExtra("app", app)
+                .putExtra("remote", remote)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             // "Display over other apps" also lets us open this screen from the background.
             if (Settings.canDrawOverlays(c)) {
@@ -39,7 +40,8 @@ class InterventionActivity : AppCompatActivity() {
                     return
                 } catch (e: Exception) { }
             }
-            Notify.fullScreen(c, i, "Pause before you pay", "You are on a long call and opened $app. Tap to read this first.")
+            Notify.fullScreen(c, i, if (remote) "Stop. Do not share your screen" else "Pause before you pay",
+                "You are on a call and opened $app. Tap to read this first.")
         }
     }
 
@@ -49,6 +51,7 @@ class InterventionActivity : AppCompatActivity() {
     private lateinit var continueBtn: Button
     private lateinit var askBtn: Button
     private var app = "a payment app"
+    private var remote = false
 
     private val refresh = object : Runnable {
         override fun run() {
@@ -61,25 +64,35 @@ class InterventionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         app = intent.getStringExtra("app") ?: app
+        remote = intent.getBooleanExtra("remote", false)
         openedAt = System.currentTimeMillis()
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(Ui.dp(this@InterventionActivity, 22), Ui.dp(this@InterventionActivity, 36), Ui.dp(this@InterventionActivity, 22), Ui.dp(this@InterventionActivity, 28))
         }
+        root.addView(Ui.ring(this, if (remote) Ui.RED else Ui.AMBER, 76))
         root.addView(Ui.tag(this, "KAVACH CIRCLE"))
-        root.addView(Ui.title(this, "Pause before you pay", Ui.AMBER))
-        root.addView(Ui.text(this,
-            "You have been on a call for ${Engine.minutes().toInt()} minutes and just opened $app.\n\n" +
-                "Real CBI, police, customs or RBI officers never ask you to pay, move money or \"verify\" your savings on a call. " +
-                "There is no such thing as a digital arrest.", 16f))
+        if (remote) {
+            root.addView(Ui.title(this, "Stop. Do not share your screen", Ui.RED))
+            root.addView(Ui.text(this,
+                "You are on a call and just opened $app.\n\n" +
+                    "$app lets another person see and control your phone, including your bank apps and OTPs. " +
+                    "No bank, police officer or company will ever ask you to install it on a call. Your family has been told.", 16f))
+        } else {
+            root.addView(Ui.title(this, "Pause before you pay", Ui.AMBER))
+            root.addView(Ui.text(this,
+                "You have been on a call for ${Engine.minutes().toInt()} minutes and just opened $app.\n\n" +
+                    "Real CBI, police, customs or RBI officers never ask you to pay, move money or \"verify\" your savings on a call. " +
+                    "There is no such thing as a digital arrest.", 16f))
+        }
 
         status = Ui.text(this, "", 14f, Ui.CYAN, true)
         root.addView(status)
 
         root.addView(Ui.button(this, "Call my family now", Ui.RED, Ui.DARK) { callFamily() })
         askBtn = Ui.button(this, "Ask my family to approve this payment", Ui.CYAN, Ui.DARK) { askApproval() }
-        root.addView(askBtn)
+        if (!remote) root.addView(askBtn)
         continueBtn = Ui.button(this, "Continue without approval") { continueAnyway() }
         root.addView(continueBtn)
         root.addView(Ui.button(this, "Go to home screen") { goHome() })
@@ -90,6 +103,15 @@ class InterventionActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { goHome() }
         })
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // A different warning (payment vs screen-sharing) replaces the one on screen.
+        if (intent.getBooleanExtra("remote", false) != remote) {
+            setIntent(intent)
+            recreate()
+        }
     }
 
     override fun onResume() {
@@ -108,7 +130,7 @@ class InterventionActivity : AppCompatActivity() {
         val wait = Prefs.continueWaitSec(this)
         val left = wait - ((System.currentTimeMillis() - openedAt) / 1000).toInt()
         val by = Prefs.approverName(this).ifBlank { "Your family" }
-        when (Prefs.approvalState(this)) {
+        when (if (remote) Engine.APPROVAL_NONE else Prefs.approvalState(this)) {
             Engine.APPROVAL_WAITING -> {
                 status.text = "Waiting for your family to reply YES or NO by SMS…"
                 status.setTextColor(Ui.CYAN)
@@ -162,11 +184,15 @@ class InterventionActivity : AppCompatActivity() {
     }
 
     private fun continueAnyway() {
-        if (Prefs.approvalState(this) != Engine.APPROVAL_YES) {
+        if (remote || Prefs.approvalState(this) != Engine.APPROVAL_YES) {
             Messenger.toGuardians(this, "CONTINUED", app = app)
         }
-        Engine.pauseCleared = true
-        Prefs.clearApproval(this)
+        if (remote) {
+            Engine.remoteCleared = true
+        } else {
+            Engine.pauseCleared = true
+            Prefs.clearApproval(this)
+        }
         finish()
     }
 

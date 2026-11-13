@@ -30,6 +30,18 @@ object Engine {
         "com.amazon.mShop.android.shopping" to "Amazon Pay"
     )
 
+    /** Screen-sharing and remote-control apps that scammers ask victims to install. */
+    val REMOTE_APPS: Map<String, String> = mapOf(
+        "com.anydesk.anydeskandroid" to "AnyDesk",
+        "com.teamviewer.quicksupport.market" to "TeamViewer QuickSupport",
+        "com.teamviewer.host.market" to "TeamViewer Host",
+        "com.teamviewer.teamviewer.market.mobile" to "TeamViewer",
+        "com.carriez.flutter_hbb" to "RustDesk",
+        "com.sand.airdroid" to "AirDroid",
+        "com.sand.airmirror" to "AirMirror",
+        "com.zoho.assist.agent" to "Zoho Assist"
+    )
+
     // approval states for the two-person rule
     const val APPROVAL_NONE = 0
     const val APPROVAL_WAITING = 1
@@ -42,6 +54,8 @@ object Engine {
     @Volatile var otpDuringCall = false
     @Volatile var alertSent = false
     @Volatile var pauseCleared = false
+    @Volatile var remoteDuringCall = false
+    @Volatile var remoteCleared = false
     @Volatile var lastApp = ""
     @Volatile private var lastFg = ""
 
@@ -53,6 +67,8 @@ object Engine {
         otpDuringCall = false
         alertSent = false
         pauseCleared = false
+        remoteDuringCall = false
+        remoteCleared = false
     }
 
     fun inCall(c: Context): Boolean {
@@ -92,7 +108,19 @@ object Engine {
             resetCall()
         }
 
-        val app = PAYMENT_APPS[foreground(c)]
+        val fg = foreground(c)
+        val app = PAYMENT_APPS[fg]
+
+        // Remote-access shield: a screen-sharing app opened during ANY call is treated as an attack at once.
+        val remote = REMOTE_APPS[fg]
+        if (onCall() && remote != null) {
+            if (!remoteDuringCall) {
+                remoteDuringCall = true
+                Messenger.toGuardians(c, "REMOTE", minutes().toInt(), remote)
+                Notify.info(c, "Kavach Circle alerted your family", "You opened $remote during a call. Scammers use it to control your phone.")
+            }
+            if (!remoteCleared && !InterventionActivity.visible) InterventionActivity.launch(c, remote, true)
+        }
         if (onCall() && app != null) {
             paymentDuringCall = true
             lastApp = app
