@@ -11,7 +11,11 @@ Kavach Circle is a real Android app for the person you want to protect (for exam
 - **Remote-access shield.** If AnyDesk, TeamViewer, RustDesk or another screen-control app is opened during any call, Kavach shows a stop screen and texts the guardians at once.
 - **One-tap SOS.** A red button on the home screen texts every guardian and phones the first one.
 
-To go back to the version before the 3D website and these features, use the `backup-v1` branch.
+- **Account and PIN login.** The app opens with a create-account flow (name, number, role, PIN). After that it asks for the PIN each time it is opened, and locks again after 5 minutes away. The account lives only on the phone.
+- **Two dashboards.** The protected person and the guardian each get their own home page, menu and profile. The guardian's page keeps a history of alerts.
+- **Screen-share watch.** With notification access allowed, Kavach notices when WhatsApp, Google Meet, Zoom, Telegram, Teams, Skype or Signal starts sharing the screen during a call, shows a stop screen and texts the guardians. It works from the wording of the app's ongoing call notification, so test it on your own phones.
+
+Backups: `backup-v1` is the version before the 3D website; `backup-v2` is the version before the login page and new dashboards.
 
 ---
 
