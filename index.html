@@ -157,6 +157,67 @@ footer{border-top:1px solid var(--line);padding:32px 0 48px;color:var(--muted);f
 footer a{color:var(--muted)}
 footer .src{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
 @media (prefers-reduced-motion:no-preference){.dot{animation:blink 1.4s infinite}@keyframes blink{50%{opacity:.35}}}
+
+/* ===== 3D layer ===== */
+.brand,nav .btn{white-space:nowrap}
+@media (max-width:420px){.brand{font-size:16px}nav .wrap{gap:10px}nav .btn{padding:8px 10px;font-size:13px}}
+.hero{position:relative;overflow:hidden;isolation:isolate}
+#fx{position:absolute;inset:0;width:100%;height:100%;z-index:-1;display:block}
+.floor{position:absolute;left:-30%;right:-30%;bottom:-2px;height:46%;z-index:-2;transform:perspective(520px) rotateX(62deg);transform-origin:50% 100%;
+  background-image:linear-gradient(rgba(34,211,238,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.35) 1px,transparent 1px);background-size:56px 56px;
+  mask-image:linear-gradient(to top,#000 5%,transparent 85%);-webkit-mask-image:linear-gradient(to top,#000 5%,transparent 85%)}
+.hero h1{text-shadow:0 0 34px rgba(34,211,238,.25)}
+.stage{perspective:1300px;position:relative}
+.stage .phone{transform:rotateY(var(--py,-16deg)) rotateX(var(--px,6deg));transform-style:preserve-3d;transition:transform .25s ease-out;
+  box-shadow:0 40px 90px -30px rgba(34,211,238,.55),0 0 0 1px rgba(34,211,238,.25)}
+.stage .screen{transform-style:preserve-3d}
+.stage .notif{transform:translateZ(46px);box-shadow:0 18px 40px -12px rgba(245,165,36,.45);background:rgba(34,26,8,.92)}
+.stage .pip{transform:translateZ(20px)}
+.stage .pbtns{transform:translateZ(32px)}
+.float{position:absolute;z-index:2;font-family:var(--mono);font-size:12px;letter-spacing:.08em;padding:8px 12px;border-radius:10px;background:rgba(15,26,43,.9);border:1px solid var(--cyan);color:var(--cyan);box-shadow:0 12px 30px -10px rgba(34,211,238,.6);white-space:nowrap}
+.float.a{left:-4%;top:14%;transform:translateZ(90px)}
+.float.b{right:-6%;bottom:16%;border-color:var(--amber);color:var(--amber);box-shadow:0 12px 30px -10px rgba(245,165,36,.6);transform:translateZ(110px)}
+@media (max-width:860px){.float.a{left:0}.float.b{right:0}.stage .phone{--py:-8deg}}
+.tilt{transform-style:preserve-3d;transition:transform .18s ease-out,box-shadow .18s,border-color .18s;position:relative;will-change:transform}
+.tilt:hover{box-shadow:0 24px 50px -24px rgba(34,211,238,.55);border-color:var(--cyan)}
+.tilt::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .2s;
+  background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%),rgba(34,211,238,.16),transparent 60%)}
+.tilt:hover::after{opacity:1}
+.tilt .hex,.tilt b:first-child,.tilt .n{transform:translateZ(26px)}
+.tilt h3{transform:translateZ(14px)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media (max-width:1040px){.grid4{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.grid4{grid-template-columns:1fr}}
+
+/* defence stack */
+.depth{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.stackbox{height:470px;display:grid;place-items:center;perspective:1400px}
+.stack{position:relative;width:270px;height:170px;transform-style:preserve-3d;transform:rotateX(58deg) rotateZ(-38deg) translateZ(-110px);transition:transform .4s}
+.plate{position:absolute;inset:0;border-radius:18px;border:1.5px solid rgba(34,211,238,.6);background:linear-gradient(135deg,rgba(34,211,238,.20),rgba(15,26,43,.72));
+  transform:translateZ(calc(var(--i)*46px));transition:transform .35s,background .35s,border-color .35s,box-shadow .35s;cursor:pointer;display:grid;place-items:center;
+  font-family:var(--mono);font-size:13px;letter-spacing:.1em;color:var(--ink);padding:0;box-shadow:0 0 24px rgba(34,211,238,.12)}
+.plate span{transform:rotateZ(0deg);text-align:center;padding:0 10px}
+.plate.on{transform:translateZ(calc(var(--i)*46px + 34px));border-color:var(--amber);background:linear-gradient(135deg,rgba(245,165,36,.42),rgba(40,28,6,.8));box-shadow:0 0 44px rgba(245,165,36,.45)}
+.layers{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.layers button{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--ink);padding:12px 14px;font-family:var(--body);font-size:15px;cursor:pointer;display:grid;gap:2px}
+.layers button b{font-family:var(--display);font-size:16px;display:flex;gap:10px;align-items:baseline}
+.layers button b i{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.layers button span{color:var(--muted);font-size:14px;display:none}
+.layers button.on{border-color:var(--amber);background:rgba(245,165,36,.08)}
+.layers button.on span{display:block}
+.layers button.on b i{color:var(--amber)}
+.new{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:#04140c;background:var(--green);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:middle}
+@media (max-width:900px){.depth{grid-template-columns:1fr}.stackbox{height:400px}.stack{width:220px;height:140px}}
+
+@media (prefers-reduced-motion:no-preference){
+  .floor{animation:floor 2.4s linear infinite}
+  @keyframes floor{to{background-position:0 56px,0 0}}
+  .float.a{animation:bob 4s ease-in-out infinite}
+  .float.b{animation:bob 5s ease-in-out -2s infinite}
+  @keyframes bob{50%{translate:0 -10px}}
+  .rv{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes rise{from{opacity:0;transform:perspective(900px) rotateX(14deg) translateY(36px)}}
+}
 </style>
 </head>
 <body>
@@ -181,6 +242,8 @@ footer .src{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
   <symbol id="i-server" viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h18v7H3V3zm0 11h18v7H3v-7zm3-8v1h2V6H6zm0 11v1h2v-1H6z"/></symbol>
   <symbol id="i-users" viewBox="0 0 24 24"><path fill="currentColor" d="M9 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm8 1a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM1 20c0-3.3 3.6-6 8-6s8 2.7 8 6v1H1v-1zm17.5 1v-1c0-1.9-.8-3.6-2.2-4.9 3.6.3 6.7 2.4 6.7 4.9v1h-4.5z"/></symbol>
   <symbol id="i-mobile" viewBox="0 0 24 24"><path fill="currentColor" d="M7 1h10a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2zm0 3v15h10V4H7zm4 16v1h2v-1h-2z"/></symbol>
+  <symbol id="i-cast" viewBox="0 0 24 24"><path fill="currentColor" d="M3 4h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-6v2h3v2H6v-2h3v-2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 2v10h18V6H3z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V8a6 6 0 0 0-6-6zm-2 16a2 2 0 0 0 4 0h-4z"/></symbol>
 </svg>
 
 <nav aria-label="Main">
@@ -197,15 +260,20 @@ footer .src{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
 </nav>
 
 <header class="hero" id="top">
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div class="floor" aria-hidden="true"></div>
   <div class="wrap">
     <div>
       <h1>Stop digital arrest scams <em>while the call is still live</em></h1>
-      <p>Kavach Circle watches for the pattern of a person being coerced on their own phone. When it sees it, it quietly pulls their family in and puts the transfer on hold. No AI, no reading of messages, nothing that a new phone number or a deepfake can get around.</p>
+      <p>Kavach Circle watches for the pattern of a person being coerced on their own phone. When it sees it, it pauses the payment and pulls their family in by SMS. No AI, no reading of messages, nothing that a new phone number or a deepfake can get around.</p>
       <div class="cta">
         <a class="btn btn-primary" href="https://github.com/Saad07Knight/Kavach-Circle/releases/latest/download/KavachCircle.apk">Download for Android</a>
         <a class="btn btn-ghost" href="app.html">Try the live demo</a>
       </div>
     </div>
+    <div class="stage" id="stage">
+    <span class="float a" aria-hidden="true">3 / 3 SIGNALS</span>
+    <span class="float b" aria-hidden="true">PAYMENT PAUSED</span>
     <div class="phone" aria-label="Example of a Kavach alert on a guardian's phone">
       <div class="screen">
         <div class="status"><span>10:42</span><span>KAVACH · ARMED</span></div>
@@ -215,9 +283,10 @@ footer .src{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
           <p>Mom has been on a video call for 36 minutes, opened her bank app and just received an OTP.</p>
           <ul class="checks"><li>Call over 30 min</li><li>Banking app opened mid-call</li><li>Bank OTP received</li></ul>
         </div>
-        <div class="pip" style="border-color:var(--amber)"><span style="color:var(--amber);font-family:var(--mono);font-size:12px">HOLD</span><span>₹4,80,000 transfer waiting for your approval</span></div>
-        <div class="pbtns"><span class="pb1">Call Mom now</span><span class="pb2">Block transfer</span></div>
+        <div class="pip" style="border-color:var(--amber)"><span style="color:var(--amber);font-family:var(--mono);font-size:12px">HOLD</span><span>Mom asks: allow this payment? Reply YES or NO</span></div>
+        <div class="pbtns"><span class="pb1">Call Mom now</span><span class="pb2">Block payment</span></div>
       </div>
+    </div>
     </div>
   </div>
 </header>
@@ -261,19 +330,22 @@ footer .src{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
     <div class="signals">
       <div class="sig-list">
         <div class="sig"><span class="hex"><svg><use href="#i-video"/></svg></span><div><h3>Long video or voice call</h3><p>30+ minutes, read from Android's audio mode and camera/mic-in-use state.</p></div></div>
-        <div class="sig"><span class="hex"><svg><use href="#i-bank"/></svg></span><div><h3>Banking or UPI app opened mid-call</h3><p>Matched against a list of about 50 bank and UPI apps using app-usage stats.</p></div></div>
+        <div class="sig"><span class="hex"><svg><use href="#i-bank"/></svg></span><div><h3>Banking or UPI app opened mid-call</h3><p>Matched against a list of popular bank and UPI apps using app-usage stats.</p></div></div>
         <div class="sig"><span class="hex"><svg><use href="#i-otp"/></svg></span><div><h3>Bank OTP or debit alert arrives</h3><p>Only the sender and keywords are checked. Messages are never read or stored.</p></div></div>
       </div>
       <div class="arrow" aria-hidden="true">→</div>
-<pre class="rule" aria-label="Kavach rule in pseudocode"><span class="cm">// runs on-device, every 5 seconds</span>
+<pre class="rule" aria-label="Kavach rule in pseudocode"><span class="cm">// runs on-device, every 3 seconds</span>
 <span class="kw">if</span> call.active
    <span class="kw">and</span> call.minutes &gt;= <span class="fn">30</span>
    <span class="kw">and</span> bankAppOpened(<span class="fn">duringCall</span>)
    <span class="kw">and</span> otpReceived(<span class="fn">duringCall</span>):
 
-    <span class="fn">alertGuardians</span>(silent=<span class="kw">true</span>)
-    <span class="fn">autoCallVictim</span>(from=guardian)
-    <span class="fn">flagTransaction</span>(hold=<span class="fn">"24h"</span>)</pre>
+    <span class="fn">pauseScreen</span>(over=<span class="fn">paymentApp</span>)
+    <span class="fn">smsGuardians</span>(<span class="fn">"ALERT"</span>)
+    <span class="fn">askFamily</span>(reply=<span class="fn">"YES / NO"</span>)
+
+<span class="kw">if</span> call.active <span class="kw">and</span> screenShareAppOpened():
+    <span class="fn">smsGuardians</span>(<span class="fn">"ALERT"</span>)  <span class="cm">// at once</span></pre>
     </div>
   </div>
 </section>
@@ -281,15 +353,29 @@ footer .src{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
 <section id="features" aria-labelledby="h-feat">
   <div class="wrap">
     <span class="eyebrow">04 // What makes us different</span>
-    <h2 id="h-feat">Six features we found in no consumer scam app</h2>
-    <p class="lede">Each one is built for the moment a scammer is directing the victim live, not for the moment after the money is gone.</p>
-    <div class="grid3">
+    <h2 id="h-feat">Eight protections built for the live call</h2>
+    <p class="lede">Each one works while a scammer is directing the victim, not after the money is gone. We found the duress PIN and the two-person rule in no consumer scam app.</p>
+    <div class="grid4">
       <div class="feat hl"><div class="head"><span class="hex amber"><svg><use href="#i-pin"/></svg></span><h3>Duress PIN</h3></div><p>A second, fake PIN. If the scammer forces the victim to "turn off" the app, it looks switched off to them and silently alerts the family.</p></div>
-      <div class="feat"><div class="head"><span class="hex"><svg><use href="#i-hand"/></svg></span><h3>Two-person rule</h3></div><p>A large transfer made during a long call needs a guardian to approve it from their own phone.</p></div>
-      <div class="feat"><div class="head"><span class="hex"><svg><use href="#i-phone"/></svg></span><h3>Isolation breaker</h3></div><p>The guardian's phone automatically calls the victim and breaks the scammer's hold.</p></div>
+      <div class="feat"><div class="head"><span class="hex"><svg><use href="#i-hand"/></svg></span><h3>Two-person rule</h3></div><p>A payment made during a long call waits for a guardian to reply YES or NO by SMS from their own phone.</p></div>
+      <div class="feat"><div class="head"><span class="hex"><svg><use href="#i-phone"/></svg></span><h3>Isolation breaker</h3></div><p>Guardians are told to call at once. With the guardian app, their phone calls the victim automatically.</p></div>
       <div class="feat"><div class="head"><span class="hex"><svg><use href="#i-eye"/></svg></span><h3>Invisible to screen share</h3></div><p>Kavach screens are blocked from screen sharing and recording, so the scammer never sees it working.</p></div>
       <div class="feat"><div class="head"><span class="hex"><svg><use href="#i-finger"/></svg></span><h3>Privacy-first</h3></div><p>No audio, message text or amounts are read. All checks run on the phone.</p></div>
-      <div class="feat"><div class="head"><span class="hex red"><svg><use href="#i-warn"/></svg></span><h3>Tamper alarm</h3></div><p>If the app is uninstalled, disabled or goes silent, the guardians are told at once.</p></div>
+      <div class="feat"><div class="head"><span class="hex red"><svg><use href="#i-warn"/></svg></span><h3>Tamper alarm</h3></div><p>If someone starts removing the app's protection, the guardians are told at once.</p></div>
+      <div class="feat"><div class="head"><span class="hex red"><svg><use href="#i-cast"/></svg></span><h3>Remote-access shield <span class="new">NEW</span></h3></div><p>Opening AnyDesk, TeamViewer or another screen-control app during any call shows a stop screen and alerts the family straight away.</p></div>
+      <div class="feat"><div class="head"><span class="hex amber"><svg><use href="#i-bell"/></svg></span><h3>One-tap SOS <span class="new">NEW</span></h3></div><p>If a call feels wrong, one button texts every guardian and phones the first one.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="depth" aria-labelledby="h-depth">
+  <div class="wrap">
+    <span class="eyebrow">Defence in depth</span>
+    <h2 id="h-depth">Six layers a scammer has to get through</h2>
+    <p class="lede">Pick a layer to see what it does. If one is talked around, the next still stands.</p>
+    <div class="depth">
+      <div class="stackbox"><div class="stack" id="stack" aria-hidden="true"></div></div>
+      <ol class="layers" id="layers"></ol>
     </div>
   </div>
 </section>
@@ -318,23 +404,23 @@ footer .src{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
   <div class="wrap">
     <span class="eyebrow">06 // Security architecture</span>
     <h2 id="h-sec">Built so the protector can't become the target</h2>
-    <p class="lede">No static API keys and no home-made encryption. Our own protocol, built on proven primitives.</p>
+    <p class="lede">No server, no account and no API keys. There is nothing online for an attacker to breach.</p>
     <div class="secflow">
-      <div class="node"><h3>Victim's phone</h3><p>Key pair created inside the phone's secure hardware. The private key never leaves it.</p></div>
-      <div class="link"><i>→</i>signed + nonce</div>
-      <div class="node"><h3>Kavach relay</h3><p>Checks the signature and nonce, then forwards a blob it cannot read.</p></div>
-      <div class="link"><i>→</i>end-to-end</div>
-      <div class="node"><h3>Guardian's phone</h3><p>The only device that can decrypt the alert.</p></div>
+      <div class="node"><h3>Protected phone</h3><p>The rule engine runs on the phone. No call audio or message text ever leaves it.</p></div>
+      <div class="link"><i>→</i>alert by SMS</div>
+      <div class="node"><h3>Mobile network</h3><p>Plain SMS: works on any phone, with no internet and no app.</p></div>
+      <div class="link"><i>→</i>YES / NO reply</div>
+      <div class="node"><h3>Guardian's phone</h3><p>Replies count only from a saved guardian's number.</p></div>
     </div>
     <div class="hard">
-      <div><span class="hex"><svg><use href="#i-key"/></svg></span><p style="margin:0"><b>No static API keys</b><span>Every request is signed by the device itself.</span></p></div>
-      <div><span class="hex violet"><svg><use href="#i-qr"/></svg></span><p style="margin:0"><b>In-person QR pairing</b><span>A scammer can't add themselves as a guardian remotely.</span></p></div>
-      <div><span class="hex"><svg><use href="#i-lock"/></svg></span><p style="margin:0"><b>Hardware-backed keys</b><span>Android Keystore; keys can't be exported.</span></p></div>
-      <div><span class="hex violet"><svg><use href="#i-flag"/></svg></span><p style="margin:0"><b>24-hour guardian-change delay</b><span>Existing guardians are notified of any change.</span></p></div>
-      <div><span class="hex"><svg><use href="#i-clock"/></svg></span><p style="margin:0"><b>Replay-proof requests</b><span>One-time nonce plus timestamp on every call.</span></p></div>
-      <div><span class="hex violet"><svg><use href="#i-bug"/></svg></span><p style="margin:0"><b>Root and tamper detection</b><span>Obfuscated code, minimal permissions, no accessibility service.</span></p></div>
-      <div><span class="hex"><svg><use href="#i-cert"/></svg></span><p style="margin:0"><b>Certificate pinning</b><span>TLS 1.3, and only to our own server.</span></p></div>
-      <div><span class="hex violet"><svg><use href="#i-shield"/></svg></span><p style="margin:0"><b>Proven primitives</b><span>ECDSA P-256 signatures, ECDH key exchange, AES-256-GCM.</span></p></div>
+      <div><span class="hex"><svg><use href="#i-key"/></svg></span><p style="margin:0"><b>No API keys, no backend</b><span>Nothing to leak, steal or take offline.</span></p></div>
+      <div><span class="hex violet"><svg><use href="#i-users"/></svg></span><p style="margin:0"><b>Replies only from saved guardians</b><span>A scammer's YES is ignored.</span></p></div>
+      <div><span class="hex"><svg><use href="#i-clock"/></svg></span><p style="margin:0"><b>Approvals expire</b><span>One-time code per request, valid for 30 minutes.</span></p></div>
+      <div><span class="hex violet"><svg><use href="#i-flag"/></svg></span><p style="margin:0"><b>24-hour guardian-change delay</b><span>Existing guardians are told by SMS first.</span></p></div>
+      <div><span class="hex"><svg><use href="#i-lock"/></svg></span><p style="margin:0"><b>PIN to switch off or remove a guardian</b><span>Stored only as a salted SHA-256 hash.</span></p></div>
+      <div><span class="hex violet"><svg><use href="#i-eye"/></svg></span><p style="margin:0"><b>Screens hidden from capture</b><span>Kavach shows as black on screen share and recordings.</span></p></div>
+      <div><span class="hex"><svg><use href="#i-finger"/></svg></span><p style="margin:0"><b>On / off signals only</b><span>No accessibility service, no call recording, no message storage.</span></p></div>
+      <div><span class="hex violet"><svg><use href="#i-shield"/></svg></span><p style="margin:0"><b>Next: encrypted relay</b><span>The live demo shows signed, end-to-end encrypted alerts planned for Phase 2.</span></p></div>
     </div>
   </div>
 </section>
@@ -344,8 +430,8 @@ footer .src{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
     <span class="eyebrow">07 // Roadmap</span>
     <h2 id="h-road">From hackathon demo to a national safety layer</h2>
     <div class="road" style="margin-top:24px">
-      <div class="phase now"><span class="tag">PHASE 1 · NOW</span><h3>Working prototype</h3><p>Victim and guardian apps, on-device rule engine, signed and encrypted alerts, mock bank API.</p></div>
-      <div class="phase"><span class="tag">PHASE 2 · PILOT</span><h3>One bank partner</h3><p>A co-operative or private bank exposes a coercion-flag API with a real 24-hour hold.</p></div>
+      <div class="phase now"><span class="tag">PHASE 1 · NOW</span><h3>Working prototype</h3><p>Android app with the on-device rule engine, pause screen, SMS alerts and YES / NO family approval.</p></div>
+      <div class="phase"><span class="tag">PHASE 2 · PILOT</span><h3>One bank partner</h3><p>A co-operative or private bank exposes a coercion-flag API with a real 24-hour hold, over an encrypted relay.</p></div>
       <div class="phase"><span class="tag">PHASE 3 · SCALE</span><h3>National rails</h3><p>NPCI, telecom operators and state cyber cells; automatic 1930 report on every alert.</p></div>
     </div>
   </div>
@@ -400,5 +486,146 @@ footer .src{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
     </div>
   </div>
 </footer>
+
+<script>
+(() => {
+"use strict";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fine = matchMedia("(hover:hover) and (pointer:fine)").matches;
+
+/* ---------- 3D hero scene: a rotating shield sphere with guardian nodes in orbit ---------- */
+const cv = document.getElementById("fx"), hero = cv.parentElement, g = cv.getContext("2d");
+let W = 0, H = 0, dpr = 1, mx = 0, my = 0, tmx = 0, tmy = 0, running = true;
+const N = 150, pts = [], edges = [];
+for (let i = 0; i < N; i++) {
+  const y = 1 - 2 * (i + .5) / N, r = Math.sqrt(1 - y * y), a = i * Math.PI * (3 - Math.sqrt(5));
+  pts.push([Math.cos(a) * r, y, Math.sin(a) * r]);
+}
+for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) {
+  const d = Math.hypot(pts[i][0]-pts[j][0], pts[i][1]-pts[j][1], pts[i][2]-pts[j][2]);
+  if (d < .36) edges.push([i, j]);
+}
+const orbits = [{r:1.32,tx:1.15,tz:.2,sp:.55,ph:0},{r:1.5,tx:1.35,tz:-.5,sp:-.4,ph:2},{r:1.7,tx:1.0,tz:.9,sp:.3,ph:4}];
+const dust = Array.from({length: 70}, () => [Math.random()*2-1, Math.random()*2-1, Math.random()*.8+.2]);
+function size() {
+  const b = hero.getBoundingClientRect();
+  dpr = Math.min(devicePixelRatio || 1, 2); W = b.width; H = b.height;
+  cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function rot(p, ay, ax) {
+  let [x, y, z] = p;
+  const cy = Math.cos(ay), sy = Math.sin(ay); [x, z] = [x * cy + z * sy, -x * sy + z * cy];
+  const cx = Math.cos(ax), sx = Math.sin(ax); [y, z] = [y * cx - z * sx, y * sx + z * cx];
+  return [x, y, z];
+}
+function draw(t) {
+  g.clearRect(0, 0, W, H);
+  const wide = W > 860, cxp = wide ? W * .745 : W * .5, cyp = wide ? H * .5 : H * .68;
+  const R = Math.min(wide ? W * .21 : W * .42, H * .44), F = 3.2;
+  mx += (tmx - mx) * .05; my += (tmy - my) * .05;
+  const ay = t * .00022 + mx * .7, ax = -.28 + my * .45;
+  const pr = (p) => { const k = F / (F - p[2]); return [cxp + p[0] * R * k, cyp + p[1] * R * k, k, p[2]]; };
+
+  for (const d of dust) {                       // drifting dust with parallax
+    const x = ((d[0] + 1) / 2 * W + mx * 40 * d[2] + t * .004 * d[2]) % W, y = (d[1] + 1) / 2 * H + my * 30 * d[2];
+    g.fillStyle = "rgba(143,163,191," + (.18 + d[2] * .25) + ")"; g.fillRect(x, y, 1.4 * d[2] + .4, 1.4 * d[2] + .4);
+  }
+  const glow = g.createRadialGradient(cxp, cyp, R * .1, cxp, cyp, R * 1.9);
+  glow.addColorStop(0, "rgba(34,211,238,.20)"); glow.addColorStop(1, "rgba(34,211,238,0)");
+  g.fillStyle = glow; g.fillRect(cxp - R * 2, cyp - R * 2, R * 4, R * 4);
+
+  const P = pts.map(p => pr(rot(p, ay, ax)));
+  g.lineWidth = 1;
+  for (const [i, j] of edges) {
+    const a = P[i], b = P[j], z = (a[3] + b[3]) / 2;
+    g.strokeStyle = "rgba(34,211,238," + (.07 + (z + 1) * .16) + ")";
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+  }
+  for (const a of P) {
+    g.fillStyle = "rgba(160,235,250," + (.25 + (a[3] + 1) * .35) + ")";
+    g.beginPath(); g.arc(a[0], a[1], 1.1 * a[2], 0, 6.283); g.fill();
+  }
+  orbits.forEach((o, n) => {                    // orbit rings + guardian nodes
+    g.beginPath();
+    for (let k = 0; k <= 72; k++) {
+      const a = k / 72 * 6.283, q = pr(rot(rot([Math.cos(a) * o.r, 0, Math.sin(a) * o.r], 0, o.tx), ay * .4 + o.tz, ax));
+      k ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]);
+    }
+    g.strokeStyle = "rgba(245,165,36,.22)"; g.setLineDash([3, 7]); g.stroke(); g.setLineDash([]);
+    const a = t * .0006 * o.sp + o.ph, q = pr(rot(rot([Math.cos(a) * o.r, 0, Math.sin(a) * o.r], 0, o.tx), ay * .4 + o.tz, ax));
+    const pulse = (t * .0005 + n * .33) % 1;
+    g.strokeStyle = "rgba(245,165,36," + (.5 * (1 - pulse)) + ")";
+    g.beginPath(); g.moveTo(cxp + (q[0] - cxp) * pulse * .2, cyp + (q[1] - cyp) * pulse * .2); g.lineTo(cxp + (q[0] - cxp) * pulse, cyp + (q[1] - cyp) * pulse); g.stroke();
+    g.fillStyle = "#F5A524"; g.shadowColor = "#F5A524"; g.shadowBlur = 16;
+    g.beginPath(); g.arc(q[0], q[1], 5 * q[2], 0, 6.283); g.fill(); g.shadowBlur = 0;
+  });
+}
+function loop(t) { if (running) draw(t); requestAnimationFrame(loop); }
+size(); addEventListener("resize", size);
+if (reduce) draw(0); else {
+  new IntersectionObserver(e => running = e[0].isIntersecting).observe(hero);
+  requestAnimationFrame(loop);
+}
+
+/* ---------- phone follows the pointer ---------- */
+const stage = document.getElementById("stage"), phone = stage.querySelector(".phone");
+if (fine && !reduce) hero.addEventListener("pointermove", e => {
+  const b = hero.getBoundingClientRect();
+  tmx = (e.clientX - b.left) / b.width - .5; tmy = (e.clientY - b.top) / b.height - .5;
+  phone.style.setProperty("--py", (-16 + tmx * 26) + "deg"); phone.style.setProperty("--px", (6 - tmy * 18) + "deg");
+});
+
+/* ---------- cards tilt toward the pointer ---------- */
+document.querySelectorAll(".stat,.step,.sig,.feat,.node,.phase").forEach(el => {
+  el.classList.add("tilt");
+  if (!fine || reduce) return;
+  el.addEventListener("pointermove", e => {
+    const b = el.getBoundingClientRect(), x = (e.clientX - b.left) / b.width, y = (e.clientY - b.top) / b.height;
+    el.style.transform = "perspective(800px) rotateX(" + ((.5 - y) * 12) + "deg) rotateY(" + ((x - .5) * 14) + "deg) translateZ(8px)";
+    el.style.setProperty("--mx", x * 100 + "%"); el.style.setProperty("--my", y * 100 + "%");
+  });
+  el.addEventListener("pointerleave", () => el.style.transform = "");
+});
+
+/* ---------- defence stack ---------- */
+const LAYERS = [
+  ["On-device rule engine", "Three signals in one call: 30+ minutes, a payment app opened, a bank OTP. A fixed rule, no AI."],
+  ["Pause screen", "Opens over Paytm, Google Pay, PhonePe and bank apps, with a wait before the payment can continue."],
+  ["Family approval", "The payment waits for a guardian to reply YES or NO by SMS. Only saved guardians count."],
+  ["Remote-access shield", "A screen-control app opened during any call triggers a stop screen and an instant alert."],
+  ["Duress PIN and SOS", "A fake PIN that looks like switching off but alerts the family, plus a one-tap help button."],
+  ["Tamper alarm", "Guardians are told the moment someone starts removing Kavach's protection."]
+];
+const stack = document.getElementById("stack"), list = document.getElementById("layers");
+let cur = -1, auto = true;
+LAYERS.forEach((L, i) => {
+  const pl = document.createElement("div"); pl.className = "plate"; pl.style.setProperty("--i", i);
+  pl.innerHTML = "<span>0" + (i + 1) + " " + L[0].toUpperCase() + "</span>"; stack.appendChild(pl);
+  const li = document.createElement("li"), bt = document.createElement("button");
+  bt.type = "button"; bt.innerHTML = "<b><i>0" + (i + 1) + "</i>" + L[0] + "</b><span>" + L[1] + "</span>";
+  li.appendChild(bt); list.prepend(li);
+  const pick = () => { auto = false; select(i); };
+  pl.addEventListener("click", pick); pl.addEventListener("pointerenter", pick);
+  bt.addEventListener("click", pick); bt.addEventListener("focus", pick); bt.addEventListener("pointerenter", pick);
+});
+function select(i) {
+  cur = i;
+  stack.querySelectorAll(".plate").forEach((p, k) => p.classList.toggle("on", k === i));
+  list.querySelectorAll("button").forEach((b, k) => b.classList.toggle("on", LAYERS.length - 1 - k === i));
+}
+select(0);
+if (!reduce) setInterval(() => { if (auto) select((cur + 1) % LAYERS.length); }, 2600);
+if (fine && !reduce) document.querySelector(".stackbox").addEventListener("pointermove", e => {
+  const b = e.currentTarget.getBoundingClientRect(), x = (e.clientX - b.left) / b.width - .5, y = (e.clientY - b.top) / b.height - .5;
+  stack.style.transform = "rotateX(" + (58 - y * 14) + "deg) rotateZ(" + (-38 + x * 24) + "deg) translateZ(-110px)";
+});
+
+/* ---------- sections rise in as they enter (visible by default) ---------- */
+if (!reduce && "IntersectionObserver" in window) {
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("rv"); io.unobserve(e.target); } }), {threshold: .08});
+  document.querySelectorAll("section .wrap").forEach(el => { if (el.getBoundingClientRect().top > innerHeight) io.observe(el); });
+}
+})();
+</script>
 </body>
 </html>

@@ -6,6 +6,13 @@ Kavach Circle is a real Android app for the person you want to protect (for exam
 
 **Guardians don't need the app.** You add each guardian by name and number. They get plain, readable SMS alerts on any phone, and can simply reply **YES** or **NO** by SMS to approve or block a payment (Hindi *haan* / *nahi* work too). Replies are accepted only from a saved guardian's number, and the guardian gets a confirmation SMS back. A guardian can also install the app to get full-screen alerts, automatic calls and one-tap approve/block.
 
+**Also built in:**
+
+- **Remote-access shield.** If AnyDesk, TeamViewer, RustDesk or another screen-control app is opened during any call, Kavach shows a stop screen and texts the guardians at once.
+- **One-tap SOS.** A red button on the home screen texts every guardian and phones the first one.
+
+To go back to the version before the 3D website and these features, use the `backup-v1` branch.
+
 ---
 
 ## 1. Get a download link for the APK (about 10 minutes, free)
