@@ -119,7 +119,7 @@ object Engine {
             if (!remoteDuringCall) {
                 remoteDuringCall = true
                 Messenger.toGuardians(c, "REMOTE", minutes().toInt(), remote)
-                Notify.info(c, "Kavach Circle alerted your family", "You opened $remote during a call. Scammers use it to control your phone.")
+                Notify.info(c, "S.P.D alerted your family", "You opened $remote during a call. Scammers use it to control your phone.")
             }
             if (!remoteCleared && !InterventionActivity.visible) InterventionActivity.launch(c, remote, 1)
         }
@@ -131,7 +131,7 @@ object Engine {
             if (!shareDuringCall) {
                 shareDuringCall = true
                 Messenger.toGuardians(c, "SHARE", minutes().toInt(), share)
-                Notify.info(c, "Kavach Circle alerted your family", "Your screen is being shared in $share during a call.")
+                Notify.info(c, "S.P.D alerted your family", "Your screen is being shared in $share during a call.")
             }
             if (!remoteCleared && !InterventionActivity.visible) InterventionActivity.launch(c, share, 2)
         }
@@ -147,7 +147,7 @@ object Engine {
         if (longCall && paymentDuringCall && otpDuringCall && !alertSent) {
             alertSent = true
             Messenger.toGuardians(c, "ALERT", minutes().toInt(), lastApp.ifBlank { "a payment app" })
-            Notify.info(c, "Kavach Circle alerted your family", "A long call, a payment app and a bank OTP together look like a scam.")
+            Notify.info(c, "S.P.D alerted your family", "A long call, a payment app and a bank OTP together look like a scam.")
         }
     }
 

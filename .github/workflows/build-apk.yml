@@ -1,4 +1,4 @@
-name: Build Kavach Circle APK
+name: Build S.P.D APK
 
 on:
   push:
@@ -27,19 +27,21 @@ jobs:
         run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Name the APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk KavachCircle.apk
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk SPD.apk
+          cp SPD.apk KavachCircle.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: KavachCircle-apk
-          path: KavachCircle.apk
+          name: SPD-apk
+          path: SPD.apk
 
       - name: Publish the download link
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete app --yes --cleanup-tag || true
-          gh release create app KavachCircle.apk \
-            --title "Kavach Circle (build ${{ github.run_number }})" \
+          gh release create app SPD.apk KavachCircle.apk \
+            --title "S.P.D (build ${{ github.run_number }})" \
             --notes "Install this same APK on both phones: the person to protect and the guardian. Android will ask you to allow installing apps from your browser; allow it once." \
             --latest

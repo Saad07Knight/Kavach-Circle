@@ -11,8 +11,8 @@ import android.util.Log
  * and replies are accepted only from a saved guardian number.
  */
 object Messenger {
-    const val PREFIX = "Kavach Circle"
-    const val APK_LINK = "https://github.com/Saad07Knight/Kavach-Circle/releases/latest/download/KavachCircle.apk"
+    const val PREFIX = "S.P.D"
+    const val APK_LINK = "https://github.com/Saad07Knight/Kavach-Circle/releases/latest/download/SPD.apk"
 
     @Suppress("DEPRECATION")
     fun sms(c: Context, to: String, text: String) {
@@ -43,10 +43,10 @@ object Messenger {
             "APPROVE_REQ" -> "$PREFIX: $n wants to pay using $app during a $mins-min call. Reply YES to allow or NO to block (code $code). If unsure, call $ph first."
             "REMOTE" -> "$PREFIX ALERT: $n opened $app, a screen-sharing app, during a call. Scammers use these apps to control a phone and empty the bank account. Call $n now on $ph."
             "SHARE" -> "$PREFIX ALERT: $n is sharing their phone screen in $app during a call. Scammers use this to watch bank apps and OTPs. Call $n now on $ph."
-            "RESET" -> "$PREFIX: Kavach Circle was reset on $n's phone, so protection is off until it is set up again. If you did not expect this, call $ph."
+            "RESET" -> "$PREFIX: the app was reset on $n's phone, so protection is off until it is set up again. If you did not expect this, call $ph."
             "SOS" -> "$PREFIX SOS: $n pressed the help button and may be on a scam call right now. Call $ph now."
             "DURESS" -> "$PREFIX URGENT: $n entered the duress PIN. Someone may be forcing them to switch off protection. Call $ph now."
-            "TAMPER" -> "$PREFIX: someone is removing Kavach Circle from $n's phone. Call $ph."
+            "TAMPER" -> "$PREFIX: someone is removing S.P.D from $n's phone. Call $ph."
             "DISABLED" -> "$PREFIX: $n turned protection off with their PIN."
             "CONTINUED" -> "$PREFIX: $n waited out the pause and continued to $app without your approval. Call $ph."
             "TEST" -> "$PREFIX: test message. You are $n's guardian and will get an SMS like this if a call looks like a scam."
@@ -99,7 +99,7 @@ object Messenger {
             body.contains("ALERT:") -> "ALERT"
             body.contains("needs you now") || body.contains("SOS:") -> "HELP"
             body.contains("Reply YES") -> "APPROVE_REQ"
-            body.contains("removing Kavach") -> "TAMPER"
+            body.contains("removing S.P.D") -> "TAMPER"
             else -> "INFO"
         }
         val code = Regex("code (\\d{4})").find(body)?.groupValues?.get(1) ?: ""

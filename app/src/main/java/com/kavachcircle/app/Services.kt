@@ -42,7 +42,7 @@ object Notify {
         val pi = PendingIntent.getActivity(c, 0, Intent(c, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         return NotificationCompat.Builder(c, CH_MON)
             .setSmallIcon(R.drawable.ic_stat)
-            .setContentTitle(if (disguised) "Device care" else "Kavach Circle is protecting you")
+            .setContentTitle(if (disguised) "Device care" else "S.P.D is protecting you")
             .setContentText(if (disguised) "Running" else "Watching for scam call patterns. Nothing is recorded.")
             .setOngoing(true)
             .setContentIntent(pi)
@@ -167,13 +167,13 @@ class BootReceiver : BroadcastReceiver() {
 class AdminReceiver : DeviceAdminReceiver() {
     override fun onDisableRequested(context: Context, intent: Intent): CharSequence {
         if (Prefs.role(context) == Prefs.ROLE_VICTIM) Messenger.toGuardians(context, "TAMPER")
-        return "Kavach Circle will tell your family that protection is being removed."
+        return "S.P.D will tell your family that protection is being removed."
     }
 }
 
 /**
  * Screen-share watch. Android gives no direct way to ask "is another app sharing my screen?", but
- * calling apps must show an ongoing notification while they do. With notification access, Kavach
+ * calling apps must show an ongoing notification while they do. With notification access, S.P.D
  * looks only at ongoing notifications from calling apps and the system, and only for screen-share
  * wording. Chat messages are never read.
  */
